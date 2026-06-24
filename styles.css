@@ -254,7 +254,7 @@ select:focus {
 
 .location-input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
 }
 
@@ -315,6 +315,10 @@ select:focus {
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.search-btn {
+  background: var(--green-soft);
 }
 
 form button,
@@ -470,6 +474,10 @@ tbody tr:last-child td {
   .month-tools {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .location-input-row {
+    grid-template-columns: 1fr;
   }
 }
 

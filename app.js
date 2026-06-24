@@ -80,6 +80,7 @@ const els = {
   tenantRoom: document.getElementById("tenant-room"),
   targetMonth: document.getElementById("target-month"),
   detectLocation: document.getElementById("detect-location"),
+  searchLocation: document.getElementById("search-location"),
   apartmentLocation: document.getElementById("apartment-location"),
   locationSuggestions: document.getElementById("location-suggestions"),
   generateLog: document.getElementById("generate-log"),
@@ -179,6 +180,10 @@ function bindEvents() {
 
   els.detectLocation.addEventListener("click", () => {
     fillCurrentLocation();
+  });
+
+  els.searchLocation.addEventListener("click", () => {
+    searchTypedLocation();
   });
 
   els.logsTable.addEventListener("input", (event) => {
@@ -521,6 +526,17 @@ function findNearestLocationName(latitude, longitude) {
   });
 
   return nearest.name;
+}
+
+function searchTypedLocation() {
+  const location = els.apartmentLocation.value.trim();
+  if (!location) {
+    alert("Please type a location or paste a Google Maps link first.");
+    els.apartmentLocation.focus();
+    return;
+  }
+
+  window.open(getGoogleMapsUrl(location), "_blank", "noopener");
 }
 
 function downloadCurrentMonthCsv() {
