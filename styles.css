@@ -400,16 +400,8 @@ select:focus {
   display: block;
   width: 100%;
   height: min(58vh, 460px);
+  border: 0;
   background: #eef3ed;
-}
-
-.map-fallback {
-  display: grid;
-  place-items: center;
-  min-height: 320px;
-  padding: 24px;
-  color: var(--muted);
-  text-align: center;
 }
 
 .map-modal-actions {
@@ -439,23 +431,6 @@ select:focus {
   font-weight: 800;
 }
 
-.red-map-pin {
-  width: 24px;
-  height: 24px;
-  border: 3px solid #fff;
-  border-radius: 50% 50% 50% 0;
-  background: #d93025;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
-  transform: rotate(-45deg);
-}
-
-.red-map-pin::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: #fff;
-}
 
 .detect-btn {
   min-height: 46px;

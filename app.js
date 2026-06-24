@@ -1,4 +1,4 @@
-const STORAGE_KEY = "apartment-erp-demo-v4";
+﻿const STORAGE_KEY = "apartment-erp-demo-v4";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -234,9 +234,6 @@ demoData.expenses = [
 
 let state = loadState();
 let selectedMapQuery = "";
-let mapPicker = null;
-let mapMarker = null;
-let mapPinQuery = "";
 
 const els = {
   currentMonthLabel: document.getElementById("current-month-label"),
@@ -398,7 +395,6 @@ function bindEvents() {
   });
 
   els.useMapLocation.addEventListener("click", () => {
-    if (mapPinQuery) selectedMapQuery = mapPinQuery;
     hideLocationMapPreview();
     els.apartmentLocation.focus();
   });
@@ -478,7 +474,7 @@ function renderApartments() {
           <td>${formatMoney(apartment.monthlyRent)}</td>
           <td>${renderLocation(apartment.location, apartment.mapQuery)}</td>
           <td><span class="badge ${occupied ? "yes" : "no"}">${occupied ? "Yes" : "No"}</span></td>
-          <td>${tenant ? escapeHtml(tenant.name) : "—"}</td>
+          <td>${tenant ? escapeHtml(tenant.name) : "â€”"}</td>
           <td>
             <div class="row-actions">
               <button class="small-btn danger" data-delete="apartment" data-id="${apartment.id}">Delete</button>
@@ -596,7 +592,7 @@ function renderStats() {
 
 function renderLocation(location, mapQuery = location) {
   const cleanLocation = String(location || "").trim();
-  if (!cleanLocation) return "—";
+  if (!cleanLocation) return "â€”";
 
   return `
     <a class="map-link" href="${escapeHtml(getGoogleMapsUrl(mapQuery || cleanLocation))}" target="_blank" rel="noopener">Open Maps</a>
@@ -621,109 +617,13 @@ function showLocationMapPreview(location) {
   els.mapModalLocation.textContent = cleanLocation;
   els.mapModal.hidden = false;
   els.mapModal.setAttribute("aria-hidden", "false");
-  openDraggableMap(cleanLocation);
+  els.locationMapFrame.src = getGoogleMapsEmbedUrl(cleanLocation);
 }
 
 function hideLocationMapPreview() {
   els.mapModal.hidden = true;
   els.mapModal.setAttribute("aria-hidden", "true");
-}
-
-async function openDraggableMap(location) {
-  const coords = await resolveLocationCoordinates(location);
-  mapPinQuery = `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`;
-
-  if (!window.L) {
-    els.locationMapFrame.innerHTML = `
-      <div class="map-fallback">
-        Map picker could not load. You can still type the location name manually.
-      </div>
-    `;
-    return;
-  }
-
-  setTimeout(() => {
-    const redPinIcon = L.divIcon({
-      className: "",
-      html: '<div class="red-map-pin"></div>',
-      iconSize: [24, 24],
-      iconAnchor: [12, 24]
-    });
-
-    if (!mapPicker) {
-      mapPicker = L.map(els.locationMapFrame).setView([coords.lat, coords.lng], coords.zoom || 15);
-      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
-        maxZoom: 19,
-        attribution: "Tiles &copy; Esri"
-      }).addTo(mapPicker);
-      mapMarker = L.marker([coords.lat, coords.lng], { draggable: true, icon: redPinIcon }).addTo(mapPicker);
-      mapMarker.on("dragend", () => {
-        const pin = mapMarker.getLatLng();
-        mapPinQuery = `${pin.lat.toFixed(6)},${pin.lng.toFixed(6)}`;
-      });
-      mapPicker.on("click", (event) => {
-        mapMarker.setLatLng(event.latlng);
-        mapPinQuery = `${event.latlng.lat.toFixed(6)},${event.latlng.lng.toFixed(6)}`;
-      });
-    } else {
-      mapPicker.setView([coords.lat, coords.lng], coords.zoom || 15);
-      mapMarker.setIcon(redPinIcon);
-      mapMarker.setLatLng([coords.lat, coords.lng]);
-    }
-    mapPicker.invalidateSize();
-  }, 80);
-}
-
-async function resolveLocationCoordinates(location) {
-  const cleanLocation = String(location || "").trim();
-  const known = getKnownLocationCoordinates(cleanLocation);
-  if (known) return known;
-
-  try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ae&q=${encodeURIComponent(cleanLocation)}`);
-    const results = await response.json();
-    if (results && results[0]) {
-      return {
-        lat: Number(results[0].lat),
-        lng: Number(results[0].lon),
-        zoom: 17
-      };
-    }
-  } catch {
-    // If online lookup is blocked, fall back to Dubai center.
-  }
-
-  return { lat: 25.2048, lng: 55.2708, zoom: 12 };
-}
-
-function getKnownLocationCoordinates(location) {
-  const key = String(location || "").trim().toLowerCase();
-  const knownLocations = {
-    "dubai marina, dubai": { lat: 25.0800, lng: 55.1400, zoom: 15 },
-    "jumeirah lake towers, dubai": { lat: 25.0694, lng: 55.1412, zoom: 15 },
-    "business bay, dubai": { lat: 25.1850, lng: 55.2750, zoom: 15 },
-    "al barsha, dubai": { lat: 25.1118, lng: 55.2004, zoom: 15 },
-    "downtown dubai, dubai": { lat: 25.1972, lng: 55.2744, zoom: 15 },
-    "deira, dubai": { lat: 25.2697, lng: 55.3095, zoom: 15 },
-    "bur dubai, dubai": { lat: 25.2582, lng: 55.3047, zoom: 15 },
-    "jumeirah village circle, dubai": { lat: 25.0600, lng: 55.2050, zoom: 15 },
-    "dubai silicon oasis, dubai": { lat: 25.1250, lng: 55.3810, zoom: 15 },
-    "international city, dubai": { lat: 25.1650, lng: 55.4070, zoom: 15 },
-    "sharjah, united arab emirates": { lat: 25.3463, lng: 55.4209, zoom: 13 },
-    "al nahda, sharjah": { lat: 25.3030, lng: 55.3740, zoom: 15 },
-    "al majaz, sharjah": { lat: 25.3278, lng: 55.3886, zoom: 15 },
-    "muwaileh, sharjah": { lat: 25.3068, lng: 55.4758, zoom: 15 },
-    "abu dhabi, united arab emirates": { lat: 24.4539, lng: 54.3773, zoom: 13 },
-    "al reem island, abu dhabi": { lat: 24.4936, lng: 54.4071, zoom: 15 },
-    "khalifa city, abu dhabi": { lat: 24.4252, lng: 54.5821, zoom: 15 },
-    "al ain, abu dhabi": { lat: 24.1302, lng: 55.8023, zoom: 13 },
-    "ajman, united arab emirates": { lat: 25.4052, lng: 55.5136, zoom: 13 },
-    "ras al khaimah, united arab emirates": { lat: 25.8007, lng: 55.9762, zoom: 13 },
-    "fujairah, united arab emirates": { lat: 25.1288, lng: 56.3265, zoom: 13 },
-    "umm al quwain, united arab emirates": { lat: 25.5647, lng: 55.5552, zoom: 13 }
-  };
-
-  return knownLocations[key] || null;
+  els.locationMapFrame.src = "";
 }
 
 function renderLocationSuggestions(query) {
@@ -965,7 +865,7 @@ function formatMonth(monthValue) {
 }
 
 function formatDate(value) {
-  if (!value) return "—";
+  if (!value) return "â€”";
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
@@ -985,3 +885,4 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apartment Rental ERP Demo</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -246,9 +245,9 @@
         </div>
         <button id="close-map-preview" type="button" aria-label="Close map popup">×</button>
       </div>
-      <div id="location-map-frame" class="location-map-frame" aria-label="Draggable map pin"></div>
+      <iframe id="location-map-frame" class="location-map-frame" title="Google Maps location popup" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <div class="map-modal-actions">
-        <p>Drag the red pin to the exact building, then click use this location.</p>
+        <p>Check the address on Google Maps, then click use this location.</p>
         <button id="use-map-location" type="button">Use this location</button>
       </div>
     </div>
@@ -259,8 +258,6 @@
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
