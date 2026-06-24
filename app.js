@@ -79,7 +79,6 @@ const els = {
   logsTable: document.getElementById("logs-table"),
   tenantRoom: document.getElementById("tenant-room"),
   targetMonth: document.getElementById("target-month"),
-  detectLocation: document.getElementById("detect-location"),
   searchLocation: document.getElementById("search-location"),
   apartmentLocation: document.getElementById("apartment-location"),
   locationSuggestions: document.getElementById("location-suggestions"),
@@ -176,10 +175,6 @@ function bindEvents() {
   document.addEventListener("click", (event) => {
     if (event.target.closest(".location-picker")) return;
     hideLocationSuggestions();
-  });
-
-  els.detectLocation.addEventListener("click", () => {
-    fillCurrentLocation();
   });
 
   els.searchLocation.addEventListener("click", () => {
@@ -461,71 +456,6 @@ function deleteRecord(type, id) {
   }
 
   persistAndRender();
-}
-
-function fillCurrentLocation() {
-  if (!navigator.geolocation) {
-    alert("Location detection is not available in this browser. You can still type the address manually.");
-    return;
-  }
-
-  els.detectLocation.textContent = "Detecting...";
-  els.detectLocation.disabled = true;
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      const readableLocation = findNearestLocationName(latitude, longitude);
-      document.getElementById("apartment-location").value = readableLocation;
-      els.detectLocation.textContent = "Detect area";
-      els.detectLocation.disabled = false;
-    },
-    () => {
-      alert("I could not detect the location. Please allow location permission or type the address manually.");
-      els.detectLocation.textContent = "Detect area";
-      els.detectLocation.disabled = false;
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    }
-  );
-}
-
-function findNearestLocationName(latitude, longitude) {
-  const knownLocations = [
-    { name: "Dubai Marina, Dubai", lat: 25.0800, lng: 55.1400 },
-    { name: "Jumeirah Lake Towers, Dubai", lat: 25.0694, lng: 55.1412 },
-    { name: "Business Bay, Dubai", lat: 25.1850, lng: 55.2750 },
-    { name: "Al Barsha, Dubai", lat: 25.1118, lng: 55.2004 },
-    { name: "Downtown Dubai, Dubai", lat: 25.1972, lng: 55.2744 },
-    { name: "Jumeirah Village Circle, Dubai", lat: 25.0600, lng: 55.2050 },
-    { name: "Dubai Silicon Oasis, Dubai", lat: 25.1250, lng: 55.3810 },
-    { name: "International City, Dubai", lat: 25.1650, lng: 55.4070 },
-    { name: "Deira, Dubai", lat: 25.2697, lng: 55.3095 },
-    { name: "Bur Dubai, Dubai", lat: 25.2582, lng: 55.3047 },
-    { name: "Karama, Dubai", lat: 25.2455, lng: 55.3050 },
-    { name: "Al Nahda, Dubai", lat: 25.2907, lng: 55.3740 },
-    { name: "Mirdif, Dubai", lat: 25.2195, lng: 55.4247 },
-    { name: "Sharjah, United Arab Emirates", lat: 25.3463, lng: 55.4209 },
-    { name: "Abu Dhabi, United Arab Emirates", lat: 24.4539, lng: 54.3773 },
-    { name: "Ajman, United Arab Emirates", lat: 25.4052, lng: 55.5136 }
-  ];
-
-  let nearest = knownLocations[0];
-  let shortestDistance = Number.POSITIVE_INFINITY;
-
-  knownLocations.forEach((location) => {
-    const distance = Math.hypot(latitude - location.lat, longitude - location.lng);
-    if (distance < shortestDistance) {
-      shortestDistance = distance;
-      nearest = location;
-    }
-  });
-
-  return nearest.name;
 }
 
 function searchTypedLocation() {

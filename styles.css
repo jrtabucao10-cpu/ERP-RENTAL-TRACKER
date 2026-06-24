@@ -253,9 +253,7 @@ select:focus {
 }
 
 .location-input-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  display: block;
 }
 
 .location-search-box {
@@ -269,17 +267,17 @@ select:focus {
 .location-search-icon {
   position: absolute;
   top: 50%;
-  right: 7px;
+  right: 8px;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   transform: translateY(-50%);
   border: 0;
-  border-radius: 11px;
-  background: var(--green-soft);
+  border-radius: 50%;
+  background: transparent;
   color: var(--green);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -287,8 +285,8 @@ select:focus {
 
 .location-search-icon:hover,
 .location-search-icon:focus {
-  background: var(--green);
-  color: #fff;
+  background: var(--green-soft);
+  color: var(--green);
 }
 
 .location-suggestions {
@@ -505,9 +503,6 @@ tbody tr:last-child td {
     flex-direction: column;
   }
 
-  .location-input-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 620px) {
