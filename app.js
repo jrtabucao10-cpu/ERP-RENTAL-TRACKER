@@ -11,6 +11,42 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0
 });
 
+const locationSuggestions = [
+  "Dubai Marina, Dubai",
+  "Jumeirah Lake Towers, Dubai",
+  "Business Bay, Dubai",
+  "Al Barsha, Dubai",
+  "Downtown Dubai, Dubai",
+  "Jumeirah Village Circle, Dubai",
+  "Jumeirah Village Triangle, Dubai",
+  "Dubai Silicon Oasis, Dubai",
+  "International City, Dubai",
+  "Deira, Dubai",
+  "Bur Dubai, Dubai",
+  "Karama, Dubai",
+  "Al Nahda, Dubai",
+  "Mirdif, Dubai",
+  "Dubai Sports City, Dubai",
+  "Dubai Investment Park, Dubai",
+  "Discovery Gardens, Dubai",
+  "Jebel Ali, Dubai",
+  "Palm Jumeirah, Dubai",
+  "Dubai Hills Estate, Dubai",
+  "Meydan, Dubai",
+  "Arjan, Dubai",
+  "Motor City, Dubai",
+  "Al Qusais, Dubai",
+  "Sharjah, United Arab Emirates",
+  "Al Nahda, Sharjah",
+  "Al Majaz, Sharjah",
+  "Al Khan, Sharjah",
+  "Muwaileh, Sharjah",
+  "Abu Dhabi, United Arab Emirates",
+  "Al Reem Island, Abu Dhabi",
+  "Khalifa City, Abu Dhabi",
+  "Ajman, United Arab Emirates"
+];
+
 const demoData = {
   apartments: [
     { id: crypto.randomUUID(), unitNumber: "Apt 1", monthlyRent: 3500, location: "Dubai Marina, Dubai" },
@@ -44,6 +80,8 @@ const els = {
   tenantRoom: document.getElementById("tenant-room"),
   targetMonth: document.getElementById("target-month"),
   detectLocation: document.getElementById("detect-location"),
+  apartmentLocation: document.getElementById("apartment-location"),
+  locationSuggestions: document.getElementById("location-suggestions"),
   generateLog: document.getElementById("generate-log"),
   downloadLog: document.getElementById("download-log"),
   seedDemo: document.getElementById("seed-demo"),
@@ -112,6 +150,31 @@ function bindEvents() {
 
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
+  });
+
+  els.apartmentLocation.addEventListener("input", () => {
+    renderLocationSuggestions(els.apartmentLocation.value);
+  });
+
+  els.apartmentLocation.addEventListener("focus", () => {
+    renderLocationSuggestions(els.apartmentLocation.value);
+  });
+
+  els.apartmentLocation.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideLocationSuggestions();
+  });
+
+  els.locationSuggestions.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-location-option]");
+    if (!option) return;
+    els.apartmentLocation.value = option.dataset.locationOption;
+    hideLocationSuggestions();
+    els.apartmentLocation.focus();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".location-picker")) return;
+    hideLocationSuggestions();
   });
 
   els.detectLocation.addEventListener("click", () => {
@@ -281,6 +344,53 @@ function getGoogleMapsUrl(location) {
   const cleanLocation = String(location || "").trim();
   if (/^https?:\/\//i.test(cleanLocation)) return cleanLocation;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanLocation)}`;
+}
+
+function renderLocationSuggestions(query) {
+  const cleanQuery = String(query || "").trim().toLowerCase();
+  const savedLocations = state.apartments
+    .map((apartment) => apartment.location)
+    .filter(Boolean);
+  const uniqueLocations = [...new Set([...savedLocations, ...locationSuggestions])];
+
+  const matches = uniqueLocations
+    .filter((location) => {
+      if (!cleanQuery) return true;
+      return location.toLowerCase().includes(cleanQuery);
+    })
+    .slice(0, 8);
+
+  if (!matches.length) {
+    els.locationSuggestions.hidden = true;
+    els.locationSuggestions.innerHTML = "";
+    return;
+  }
+
+  els.locationSuggestions.innerHTML = matches
+    .map((location) => `
+      <button type="button" class="location-suggestion" data-location-option="${escapeHtml(location)}">
+        <strong>${highlightMatch(location, cleanQuery)}</strong>
+        <span>Use this location for Google Maps</span>
+      </button>
+    `)
+    .join("");
+  els.locationSuggestions.hidden = false;
+}
+
+function hideLocationSuggestions() {
+  els.locationSuggestions.hidden = true;
+}
+
+function highlightMatch(location, cleanQuery) {
+  const safeLocation = escapeHtml(location);
+  if (!cleanQuery) return safeLocation;
+  const index = location.toLowerCase().indexOf(cleanQuery);
+  if (index === -1) return safeLocation;
+
+  const before = escapeHtml(location.slice(0, index));
+  const match = escapeHtml(location.slice(index, index + cleanQuery.length));
+  const after = escapeHtml(location.slice(index + cleanQuery.length));
+  return `${before}<mark>${match}</mark>${after}`;
 }
 
 function generateMonthLog(month) {
