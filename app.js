@@ -652,9 +652,9 @@ async function openDraggableMap(location) {
 
     if (!mapPicker) {
       mapPicker = L.map(els.locationMapFrame).setView([coords.lat, coords.lng], coords.zoom || 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
         maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
+        attribution: "Tiles &copy; Esri"
       }).addTo(mapPicker);
       mapMarker = L.marker([coords.lat, coords.lng], { draggable: true, icon: redPinIcon }).addTo(mapPicker);
       mapMarker.on("dragend", () => {
