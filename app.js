@@ -222,9 +222,9 @@ const demoData = {
 };
 
 demoData.tenants = [
-  { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", deposit: 2000, roomId: demoData.apartments[0].id },
-  { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", deposit: 1800, roomId: demoData.apartments[1].id },
-  { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", deposit: 2500, roomId: demoData.apartments[2].id }
+  { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", moveOutDate: "", deposit: 2000, roomId: demoData.apartments[0].id },
+  { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", moveOutDate: "2026-07-31", deposit: 1800, roomId: demoData.apartments[1].id },
+  { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", moveOutDate: "", deposit: 2500, roomId: demoData.apartments[2].id }
 ];
 
 demoData.expenses = [
@@ -262,6 +262,8 @@ const els = {
   useMapLocation: document.getElementById("use-map-location"),
   generateLog: document.getElementById("generate-log"),
   downloadLog: document.getElementById("download-log"),
+  downloadExcel: document.getElementById("download-excel"),
+  downloadPdf: document.getElementById("download-pdf"),
   seedDemo: document.getElementById("seed-demo"),
   resetData: document.getElementById("reset-data"),
   emptyRowTemplate: document.getElementById("empty-row-template")
@@ -308,16 +310,22 @@ function bindEvents() {
     const name = document.getElementById("tenant-name").value.trim();
     const phone = document.getElementById("tenant-phone").value.trim();
     const moveInDate = document.getElementById("move-in-date").value;
+    const moveOutDate = document.getElementById("move-out-date").value;
     const deposit = Number(document.getElementById("tenant-deposit").value || 0);
     const roomId = document.getElementById("tenant-room").value;
 
     if (!name || !phone || !moveInDate || deposit < 0 || !roomId) return;
+    if (moveOutDate && new Date(`${moveOutDate}T00:00:00`) < new Date(`${moveInDate}T00:00:00`)) {
+      alert("Move-out date cannot be before the move-in date.");
+      return;
+    }
 
     state.tenants.push({
       id: crypto.randomUUID(),
       name,
       phone,
       moveInDate,
+      moveOutDate,
       deposit,
       roomId
     });
@@ -355,6 +363,14 @@ function bindEvents() {
 
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
+  });
+
+  els.downloadExcel.addEventListener("click", () => {
+    downloadExcelReport();
+  });
+
+  els.downloadPdf.addEventListener("click", () => {
+    openPdfReport();
   });
 
   els.apartmentLocation.addEventListener("input", () => {
@@ -500,7 +516,7 @@ function renderApartments() {
 
 function renderTenants() {
   if (!state.tenants.length) {
-    renderEmpty(els.tenantsTable, 6);
+    renderEmpty(els.tenantsTable, 7);
     return;
   }
 
@@ -512,6 +528,7 @@ function renderTenants() {
           <td><strong>${escapeHtml(tenant.name)}</strong></td>
           <td>${escapeHtml(tenant.phone)}</td>
           <td>${formatDate(tenant.moveInDate)}</td>
+          <td>${tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present"}</td>
           <td>${formatMoney(tenant.deposit || 0)}</td>
           <td>${apartment ? escapeHtml(apartment.unitNumber) : "Room deleted"}</td>
           <td>
@@ -735,9 +752,14 @@ function generateMonthLog(month) {
 }
 
 function getTenantForRoom(roomId, month) {
+  const monthStart = monthValueToDate(month);
   const monthEnd = getMonthEnd(month);
   return state.tenants
-    .filter((tenant) => tenant.roomId === roomId && new Date(`${tenant.moveInDate}T00:00:00`) <= monthEnd)
+    .filter((tenant) => {
+      const moveIn = new Date(`${tenant.moveInDate}T00:00:00`);
+      const moveOut = tenant.moveOutDate ? new Date(`${tenant.moveOutDate}T23:59:59`) : null;
+      return tenant.roomId === roomId && moveIn <= monthEnd && (!moveOut || moveOut >= monthStart);
+    })
     .sort((a, b) => new Date(b.moveInDate) - new Date(a.moveInDate))[0];
 }
 
@@ -830,6 +852,206 @@ function downloadCurrentMonthCsv() {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `rental-month-log-${month}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function downloadExcelReport() {
+  const sections = getReportSections();
+  const html = `
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; color: #0e2321; }
+          h1 { color: #24543e; }
+          h2 { margin-top: 28px; color: #24543e; }
+          table { border-collapse: collapse; width: 100%; margin-bottom: 18px; }
+          th { background: #e9f3ed; color: #0e2321; }
+          th, td { border: 1px solid #ded8cc; padding: 8px; text-align: left; }
+        </style>
+      </head>
+      <body>
+        <h1>Apartment Rental ERP Report</h1>
+        <p>Generated: ${escapeHtml(new Date().toLocaleString())}</p>
+        ${sections.map(renderReportSection).join("")}
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+  downloadBlob(blob, `apartment-rental-erp-report-${getCurrentMonthValue()}.xls`);
+}
+
+function openPdfReport() {
+  const sections = getReportSections();
+  const reportWindow = window.open("", "_blank");
+  if (!reportWindow) {
+    alert("Please allow popups so the PDF report can open.");
+    return;
+  }
+
+  reportWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Apartment Rental ERP Report</title>
+        <style>
+          @page { margin: 16mm; }
+          body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #0e2321;
+            margin: 0;
+          }
+          h1 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 30px;
+            margin: 0 0 6px;
+          }
+          h2 {
+            font-size: 18px;
+            margin: 24px 0 10px;
+            color: #24543e;
+          }
+          .report-meta {
+            color: #667571;
+            margin-bottom: 18px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+            page-break-inside: avoid;
+          }
+          th, td {
+            border: 1px solid #ded8cc;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+          }
+          th {
+            background: #e9f3ed;
+          }
+          .print-note {
+            margin: 18px 0;
+            padding: 10px 12px;
+            background: #faf7ef;
+            border: 1px solid #ded8cc;
+            border-radius: 10px;
+            color: #667571;
+          }
+          @media print {
+            .print-note { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Apartment Rental ERP Report</h1>
+        <div class="report-meta">Generated: ${escapeHtml(new Date().toLocaleString())}</div>
+        <div class="print-note">Choose “Save as PDF” in the print window to download this report as a PDF.</div>
+        ${sections.map(renderReportSection).join("")}
+        <script>
+          window.addEventListener("load", () => setTimeout(() => window.print(), 300));
+        <\/script>
+      </body>
+    </html>
+  `);
+  reportWindow.document.close();
+}
+
+function getReportSections() {
+  const month = els.targetMonth.value || getCurrentMonthValue();
+  const allLogs = state.logs
+    .slice()
+    .sort((a, b) => `${a.targetMonth}-${a.roomName}`.localeCompare(`${b.targetMonth}-${b.roomName}`, undefined, { numeric: true }));
+
+  return [
+    {
+      title: "Unit Profile",
+      headers: ["Unit Number", "Monthly Rent", "Location", "Occupied This Month", "Current Tenant"],
+      rows: state.apartments.map((apartment) => {
+        const tenant = getTenantForRoom(apartment.id, getCurrentMonthValue());
+        return [
+          apartment.unitNumber,
+          formatMoney(apartment.monthlyRent),
+          apartment.location || "—",
+          tenant ? "Yes" : "No",
+          tenant ? tenant.name : "—"
+        ];
+      })
+    },
+    {
+      title: "Tenant Profile",
+      headers: ["Name", "Phone", "Move-in Date", "Move-out Date", "Deposit", "Current Room"],
+      rows: state.tenants.map((tenant) => {
+        const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+        return [
+          tenant.name,
+          tenant.phone,
+          formatDate(tenant.moveInDate),
+          tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present",
+          formatMoney(tenant.deposit || 0),
+          apartment ? apartment.unitNumber : "Room deleted"
+        ];
+      })
+    },
+    {
+      title: `Monthly Rental Record (${formatMonth(month)} selected)`,
+      headers: ["Target Month", "Room", "Renter Name", "Rent Due", "Amount Paid", "Payment Status"],
+      rows: allLogs.map((log) => [
+        formatMonth(log.targetMonth),
+        log.roomName,
+        log.renterName || "Vacant",
+        formatMoney(log.rentDue),
+        formatMoney(log.amountPaid),
+        getPaymentStatus(log.rentDue, log.amountPaid)
+      ])
+    },
+    {
+      title: "Apartment Expenses",
+      headers: ["Date", "Apartment", "Expense", "Amount"],
+      rows: state.expenses
+        .slice()
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map((expense) => {
+          const apartment = state.apartments.find((item) => item.id === expense.roomId);
+          return [
+            formatDate(expense.date),
+            apartment ? apartment.unitNumber : "Apartment deleted",
+            expense.name,
+            formatMoney(expense.amount)
+          ];
+        })
+    }
+  ];
+}
+
+function renderReportSection(section) {
+  const rows = section.rows.length
+    ? section.rows
+    : [["No records yet."]];
+
+  const headers = section.rows.length
+    ? section.headers
+    : ["Status"];
+
+  return `
+    <h2>${escapeHtml(section.title)}</h2>
+    <table>
+      <thead>
+        <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+      </thead>
+      <tbody>
+        ${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function downloadBlob(blob, filename) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
   link.click();
   URL.revokeObjectURL(link.href);
 }
