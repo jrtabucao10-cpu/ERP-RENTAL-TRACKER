@@ -396,19 +396,37 @@ select:focus {
   line-height: 1;
 }
 
-.map-modal iframe {
+.location-map-frame {
   display: block;
   width: 100%;
   height: min(58vh, 460px);
-  border: 0;
+  background: #eef3ed;
+}
+
+.map-fallback {
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .map-modal-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 14px;
   padding: 12px;
   border-top: 1px solid #eee9df;
   background: #fff;
+}
+
+.map-modal-actions p {
+  flex: 1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .map-modal-actions button {
@@ -419,6 +437,24 @@ select:focus {
   color: #fff;
   padding: 9px 16px;
   font-weight: 800;
+}
+
+.red-map-pin {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: #d93025;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  transform: rotate(-45deg);
+}
+
+.red-map-pin::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .detect-btn {
