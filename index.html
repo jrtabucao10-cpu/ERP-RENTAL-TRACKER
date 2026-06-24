@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apartment Rental ERP Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <nav class="topbar">
+      <div class="brand">
+        <span class="brand-mark">ERP</span>
+        <div>
+          <strong>Apartment Rental ERP</strong>
+          <small>Apartment rental operations demo</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost-btn" id="seed-demo">Reload demo data</button>
+        <button class="ghost-btn" id="reset-data">Clear all data</button>
+      </div>
+    </nav>
+
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Property Operations</p>
+        <h1>Apartment ERP for rent, tenants, and monthly payments.</h1>
+        <p class="hero-copy">A simple client-ready system that tracks unit profiles, tenant assignments, and monthly rent collection in one clean dashboard.</p>
+      </div>
+      <div class="hero-card">
+        <p>Current month</p>
+        <strong id="current-month-label">&mdash;</strong>
+        <span>Occupancy and payment status are calculated automatically.</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="stats-grid" aria-label="Dashboard summary">
+      <article class="stat-card">
+        <span>Total units</span>
+        <strong id="stat-units">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Occupied now</span>
+        <strong id="stat-occupied">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Expected rent</span>
+        <strong id="stat-expected">$0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Collected this month</span>
+        <strong id="stat-collected">$0</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">A. Apartments Tracker</p>
+          <h2>Unit Profile</h2>
+          <p>Unit number, monthly rent, and automatic live occupancy status.</p>
+        </div>
+      </div>
+
+      <form id="apartment-form" class="form-grid">
+        <label>
+          Unit number
+          <input id="unit-number" type="text" placeholder="e.g. Apt 3" required>
+        </label>
+        <label>
+          Monthly rent amount
+          <input id="monthly-rent" type="number" min="0" step="1" placeholder="3500" required>
+        </label>
+        <button type="submit">Add apartment</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Unit Number</th>
+              <th>Monthly Rent</th>
+              <th>Occupied This Month?</th>
+              <th>Current Tenant</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="apartments-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">B. Tenants Tracker</p>
+          <h2>Tenant Profile</h2>
+          <p>Name, phone number, move-in date, and active apartment room.</p>
+        </div>
+      </div>
+
+      <form id="tenant-form" class="form-grid tenants-form">
+        <label>
+          Tenant name
+          <input id="tenant-name" type="text" placeholder="e.g. Maria Santos" required>
+        </label>
+        <label>
+          Phone number
+          <input id="tenant-phone" type="tel" placeholder="+971 50 000 0000" required>
+        </label>
+        <label>
+          First moved in
+          <input id="move-in-date" type="date" required>
+        </label>
+        <label>
+          Current room
+          <select id="tenant-room" required></select>
+        </label>
+        <button type="submit">Add tenant</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Move-in Date</th>
+              <th>Current Room</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tenants-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head rental-head">
+        <div>
+          <p class="eyebrow">C. Rental Month Log</p>
+          <h2>The Digital Handshake</h2>
+          <p>Generate one row per apartment room for the selected month. Payment status updates automatically.</p>
+        </div>
+        <div class="month-tools">
+          <label>
+            Target month
+            <input id="target-month" type="month">
+          </label>
+          <button id="generate-log" type="button">Generate month log</button>
+          <button id="download-log" type="button" class="secondary-action">Download CSV</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Target Month</th>
+              <th>Room</th>
+              <th>Renter Name</th>
+              <th>Rent Due</th>
+              <th>Amount Paid</th>
+              <th>Payment Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="logs-table"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <template id="empty-row-template">
+    <tr>
+      <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
+    </tr>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
