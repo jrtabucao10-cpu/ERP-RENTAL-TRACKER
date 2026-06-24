@@ -212,7 +212,7 @@ h2 {
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 190px;
+  grid-template-columns: 1fr 1fr 1.4fr 190px;
   gap: 14px;
   align-items: end;
   margin-bottom: 20px;
@@ -246,6 +246,24 @@ input:focus,
 select:focus {
   border-color: var(--green);
   box-shadow: 0 0 0 4px rgba(36, 84, 62, 0.10);
+}
+
+.location-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.detect-btn {
+  min-height: 46px;
+  border: 1px solid rgba(36, 84, 62, 0.18);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--green);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 form button,
@@ -353,6 +371,29 @@ tbody tr:last-child td {
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 800;
+}
+
+.map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(36, 84, 62, 0.18);
+  background: var(--green-soft);
+  color: var(--green);
+  border-radius: 999px;
+  padding: 8px 11px;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.location-text {
+  display: block;
+  max-width: 230px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .small-btn.danger {

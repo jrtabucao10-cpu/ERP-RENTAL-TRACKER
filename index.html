@@ -61,7 +61,7 @@
         <div>
           <p class="eyebrow">A. Apartments Tracker</p>
           <h2>Unit Profile</h2>
-          <p>Unit number, monthly rent, and automatic live occupancy status.</p>
+          <p>Unit number, monthly rent, apartment location, and automatic live occupancy status.</p>
         </div>
       </div>
 
@@ -74,6 +74,13 @@
           Monthly rent amount
           <input id="monthly-rent" type="number" min="0" step="1" placeholder="3500" required>
         </label>
+        <label>
+          Location / Google Maps
+          <div class="location-input-row">
+            <input id="apartment-location" type="text" placeholder="e.g. Dubai Marina or Google Maps link">
+            <button id="detect-location" type="button" class="detect-btn">Use my location</button>
+          </div>
+        </label>
         <button type="submit">Add apartment</button>
       </form>
 
@@ -83,6 +90,7 @@
             <tr>
               <th>Unit Number</th>
               <th>Monthly Rent</th>
+              <th>Location</th>
               <th>Occupied This Month?</th>
               <th>Current Tenant</th>
               <th></th>

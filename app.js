@@ -1,4 +1,4 @@
-const STORAGE_KEY = "apartment-erp-demo-v1";
+const STORAGE_KEY = "apartment-erp-demo-v2";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -13,10 +13,10 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
 
 const demoData = {
   apartments: [
-    { id: crypto.randomUUID(), unitNumber: "Apt 1", monthlyRent: 3500 },
-    { id: crypto.randomUUID(), unitNumber: "Apt 2", monthlyRent: 3200 },
-    { id: crypto.randomUUID(), unitNumber: "Apt 3", monthlyRent: 4200 },
-    { id: crypto.randomUUID(), unitNumber: "Apt 4", monthlyRent: 2800 }
+    { id: crypto.randomUUID(), unitNumber: "Apt 1", monthlyRent: 3500, location: "Dubai Marina, Dubai" },
+    { id: crypto.randomUUID(), unitNumber: "Apt 2", monthlyRent: 3200, location: "Jumeirah Lake Towers, Dubai" },
+    { id: crypto.randomUUID(), unitNumber: "Apt 3", monthlyRent: 4200, location: "Business Bay, Dubai" },
+    { id: crypto.randomUUID(), unitNumber: "Apt 4", monthlyRent: 2800, location: "Al Barsha, Dubai" }
   ],
   tenants: [],
   logs: []
@@ -43,6 +43,7 @@ const els = {
   logsTable: document.getElementById("logs-table"),
   tenantRoom: document.getElementById("tenant-room"),
   targetMonth: document.getElementById("target-month"),
+  detectLocation: document.getElementById("detect-location"),
   generateLog: document.getElementById("generate-log"),
   downloadLog: document.getElementById("download-log"),
   seedDemo: document.getElementById("seed-demo"),
@@ -68,13 +69,15 @@ function bindEvents() {
     event.preventDefault();
     const unitNumber = document.getElementById("unit-number").value.trim();
     const monthlyRent = Number(document.getElementById("monthly-rent").value || 0);
+    const location = document.getElementById("apartment-location").value.trim();
 
     if (!unitNumber || monthlyRent < 0) return;
 
     state.apartments.push({
       id: crypto.randomUUID(),
       unitNumber,
-      monthlyRent
+      monthlyRent,
+      location
     });
 
     els.apartmentForm.reset();
@@ -109,6 +112,10 @@ function bindEvents() {
 
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
+  });
+
+  els.detectLocation.addEventListener("click", () => {
+    fillCurrentLocation();
   });
 
   els.logsTable.addEventListener("input", (event) => {
@@ -161,7 +168,7 @@ function renderRoomSelect() {
 
 function renderApartments() {
   if (!state.apartments.length) {
-    renderEmpty(els.apartmentsTable, 5);
+    renderEmpty(els.apartmentsTable, 6);
     return;
   }
 
@@ -174,6 +181,7 @@ function renderApartments() {
         <tr>
           <td><strong>${escapeHtml(apartment.unitNumber)}</strong></td>
           <td>${formatMoney(apartment.monthlyRent)}</td>
+          <td>${renderLocation(apartment.location)}</td>
           <td><span class="badge ${occupied ? "yes" : "no"}">${occupied ? "Yes" : "No"}</span></td>
           <td>${tenant ? escapeHtml(tenant.name) : "—"}</td>
           <td>
@@ -259,6 +267,22 @@ function renderStats() {
   els.statCollected.textContent = formatMoney(collected);
 }
 
+function renderLocation(location) {
+  const cleanLocation = String(location || "").trim();
+  if (!cleanLocation) return "—";
+
+  return `
+    <a class="map-link" href="${escapeHtml(getGoogleMapsUrl(cleanLocation))}" target="_blank" rel="noopener">Open Maps</a>
+    <span class="location-text">${escapeHtml(cleanLocation)}</span>
+  `;
+}
+
+function getGoogleMapsUrl(location) {
+  const cleanLocation = String(location || "").trim();
+  if (/^https?:\/\//i.test(cleanLocation)) return cleanLocation;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanLocation)}`;
+}
+
 function generateMonthLog(month) {
   state.apartments.forEach((apartment) => {
     const existing = state.logs.find((log) => log.targetMonth === month && log.roomId === apartment.id);
@@ -322,6 +346,36 @@ function deleteRecord(type, id) {
   }
 
   persistAndRender();
+}
+
+function fillCurrentLocation() {
+  if (!navigator.geolocation) {
+    alert("Location detection is not available in this browser. You can still type the address manually.");
+    return;
+  }
+
+  els.detectLocation.textContent = "Detecting...";
+  els.detectLocation.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latitude = position.coords.latitude.toFixed(6);
+      const longitude = position.coords.longitude.toFixed(6);
+      document.getElementById("apartment-location").value = `${latitude}, ${longitude}`;
+      els.detectLocation.textContent = "Use my location";
+      els.detectLocation.disabled = false;
+    },
+    () => {
+      alert("I could not detect the location. Please allow location permission or type the address manually.");
+      els.detectLocation.textContent = "Use my location";
+      els.detectLocation.disabled = false;
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
 }
 
 function downloadCurrentMonthCsv() {
