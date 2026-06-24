@@ -219,7 +219,7 @@ h2 {
 }
 
 .tenants-form {
-  grid-template-columns: 1.2fr 1fr 170px 160px 1fr 170px;
+  grid-template-columns: 1.2fr 1fr 160px 160px 150px 1fr 160px;
 }
 
 .expense-form {

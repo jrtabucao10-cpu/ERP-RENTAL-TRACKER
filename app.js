@@ -411,7 +411,9 @@ function bindEvents() {
     const log = state.logs.find((item) => item.id === input.dataset.paidInput);
     if (!log) return;
     log.amountPaid = Number(input.value || 0);
-    persistAndRender();
+    updatePaymentStatusRow(input, log);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderStats();
   });
 
   document.addEventListener("click", (event) => {
@@ -544,7 +546,7 @@ function renderLogs() {
           <td>${escapeHtml(log.renterName || "Vacant")}</td>
           <td>${formatMoney(log.rentDue)}</td>
           <td><input class="money-input" data-paid-input="${log.id}" type="number" min="0" step="1" value="${log.amountPaid}"></td>
-          <td><span class="badge ${status.toLowerCase()}">${status}</span></td>
+          <td><span class="badge ${status.toLowerCase()}" data-payment-status>${status}</span></td>
           <td>
             <div class="row-actions">
               <button class="small-btn danger" data-delete="log" data-id="${log.id}">Delete</button>
@@ -745,6 +747,14 @@ function getPaymentStatus(rentDue, amountPaid) {
   if (paid <= 0) return "Unpaid";
   if (paid < due) return "Partial";
   return "Paid";
+}
+
+function updatePaymentStatusRow(input, log) {
+  const status = getPaymentStatus(log.rentDue, log.amountPaid);
+  const badge = input.closest("tr")?.querySelector("[data-payment-status]");
+  if (!badge) return;
+  badge.textContent = status;
+  badge.className = `badge ${status.toLowerCase()}`;
 }
 
 function deleteRecord(type, id) {
