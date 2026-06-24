@@ -88,13 +88,6 @@
               </div>
             </div>
             <div id="location-suggestions" class="location-suggestions" hidden></div>
-            <div id="location-map-preview" class="location-map-preview" hidden>
-              <div class="map-preview-head">
-                <strong id="map-preview-title">Location preview</strong>
-                <button id="close-map-preview" type="button" aria-label="Close map preview">×</button>
-              </div>
-              <iframe id="location-map-frame" title="Google Maps location preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
           </div>
         </label>
         <button type="submit">Add apartment</button>
@@ -242,6 +235,22 @@
       </div>
     </section>
   </main>
+
+  <div id="map-modal" class="map-modal" hidden aria-hidden="true">
+    <div class="map-modal-card" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+      <div class="map-preview-head">
+        <div>
+          <strong id="map-modal-title">Locate address</strong>
+          <p id="map-modal-location">Search location</p>
+        </div>
+        <button id="close-map-preview" type="button" aria-label="Close map popup">×</button>
+      </div>
+      <iframe id="location-map-frame" title="Google Maps location popup" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="map-modal-actions">
+        <button id="use-map-location" type="button">Use this location</button>
+      </div>
+    </div>
+  </div>
 
   <template id="empty-row-template">
     <tr>

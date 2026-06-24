@@ -254,10 +254,11 @@ const els = {
   searchLocation: document.getElementById("search-location"),
   apartmentLocation: document.getElementById("apartment-location"),
   locationSuggestions: document.getElementById("location-suggestions"),
-  locationMapPreview: document.getElementById("location-map-preview"),
+  mapModal: document.getElementById("map-modal"),
   locationMapFrame: document.getElementById("location-map-frame"),
-  mapPreviewTitle: document.getElementById("map-preview-title"),
+  mapModalLocation: document.getElementById("map-modal-location"),
   closeMapPreview: document.getElementById("close-map-preview"),
+  useMapLocation: document.getElementById("use-map-location"),
   generateLog: document.getElementById("generate-log"),
   downloadLog: document.getElementById("download-log"),
   seedDemo: document.getElementById("seed-demo"),
@@ -371,7 +372,6 @@ function bindEvents() {
     const option = event.target.closest("[data-location-option]");
     if (!option) return;
     els.apartmentLocation.value = option.dataset.locationOption;
-    showLocationMapPreview(els.apartmentLocation.value);
     hideLocationSuggestions();
     els.apartmentLocation.focus();
   });
@@ -387,6 +387,15 @@ function bindEvents() {
 
   els.closeMapPreview.addEventListener("click", () => {
     hideLocationMapPreview();
+  });
+
+  els.useMapLocation.addEventListener("click", () => {
+    hideLocationMapPreview();
+    els.apartmentLocation.focus();
+  });
+
+  els.mapModal.addEventListener("click", (event) => {
+    if (event.target === els.mapModal) hideLocationMapPreview();
   });
 
   els.logsTable.addEventListener("input", (event) => {
@@ -606,59 +615,57 @@ function showLocationMapPreview(location) {
   }
 
   els.locationMapFrame.src = getGoogleMapsEmbedUrl(cleanLocation);
-  els.mapPreviewTitle.textContent = `Map preview: ${cleanLocation}`;
-  els.locationMapPreview.classList.toggle("with-suggestions", !els.locationSuggestions.hidden);
-  els.locationMapPreview.hidden = false;
+  els.mapModalLocation.textContent = cleanLocation;
+  els.mapModal.hidden = false;
+  els.mapModal.setAttribute("aria-hidden", "false");
 }
 
 function hideLocationMapPreview() {
-  els.locationMapPreview.hidden = true;
+  els.mapModal.hidden = true;
+  els.mapModal.setAttribute("aria-hidden", "true");
   els.locationMapFrame.src = "";
 }
 
 function renderLocationSuggestions(query) {
   const cleanQuery = String(query || "").trim().toLowerCase();
-  const savedLocations = state.apartments
-    .map((apartment) => apartment.location)
-    .filter(Boolean);
-  const uniqueLocations = [...new Set([...savedLocations, ...locationSuggestions])];
-
-  let matches = uniqueLocations
-    .filter((location) => {
-      if (!cleanQuery) return true;
-      return location.toLowerCase().includes(cleanQuery);
-    })
-    .sort((a, b) => scoreLocationMatch(a, cleanQuery) - scoreLocationMatch(b, cleanQuery))
-    .slice(0, 14);
-
-  const typedLocation = String(query || "").trim();
-  if (typedLocation && !matches.some((location) => location.toLowerCase() === typedLocation.toLowerCase())) {
-    matches = [typedLocation, ...matches].slice(0, 14);
-  }
+  const matches = getLocationMatches(query);
 
   if (!matches.length) {
     els.locationSuggestions.hidden = true;
     els.locationSuggestions.innerHTML = "";
-    return;
+    return matches;
   }
 
   els.locationSuggestions.innerHTML = matches
     .map((location) => `
       <button type="button" class="location-suggestion" data-location-option="${escapeHtml(location)}">
         <strong>${highlightMatch(location, cleanQuery)}</strong>
-        <span>${location === typedLocation ? "Use this typed location" : "Use this suggested location"}</span>
+        <span>Use this suggested location</span>
       </button>
     `)
     .join("");
   els.locationSuggestions.hidden = false;
-  if (!els.locationMapPreview.hidden) {
-    els.locationMapPreview.classList.add("with-suggestions");
-  }
+  return matches;
 }
 
 function hideLocationSuggestions() {
   els.locationSuggestions.hidden = true;
-  els.locationMapPreview.classList.remove("with-suggestions");
+}
+
+function getLocationMatches(query) {
+  const cleanQuery = String(query || "").trim().toLowerCase();
+  const savedLocations = state.apartments
+    .map((apartment) => apartment.location)
+    .filter(Boolean);
+  const uniqueLocations = [...new Set([...savedLocations, ...locationSuggestions])];
+
+  return uniqueLocations
+    .filter((location) => {
+      if (!cleanQuery) return true;
+      return location.toLowerCase().includes(cleanQuery);
+    })
+    .sort((a, b) => scoreLocationMatch(a, cleanQuery) - scoreLocationMatch(b, cleanQuery))
+    .slice(0, 14);
 }
 
 function highlightMatch(location, cleanQuery) {
@@ -753,8 +760,18 @@ function deleteRecord(type, id) {
 }
 
 function searchTypedLocation() {
-  renderLocationSuggestions(els.apartmentLocation.value);
-  showLocationMapPreview(els.apartmentLocation.value);
+  const location = els.apartmentLocation.value.trim();
+  if (!location) {
+    renderLocationSuggestions("");
+    els.apartmentLocation.focus();
+    return;
+  }
+
+  const matches = renderLocationSuggestions(location);
+  if (!matches.length) {
+    hideLocationSuggestions();
+    showLocationMapPreview(location);
+  }
   els.apartmentLocation.focus();
 }
 
