@@ -115,7 +115,7 @@
         <div>
           <p class="eyebrow">B. Tenants Tracker</p>
           <h2>Tenant Profile</h2>
-          <p>Name, phone number, move-in date, and active apartment room.</p>
+          <p>Name, phone number, deposit, move-in date, and active apartment room.</p>
         </div>
       </div>
 
@@ -133,6 +133,10 @@
           <input id="move-in-date" type="date" required>
         </label>
         <label>
+          Deposit amount
+          <input id="tenant-deposit" type="number" min="0" step="1" placeholder="2000" required>
+        </label>
+        <label>
           Current room
           <select id="tenant-room" required></select>
         </label>
@@ -146,6 +150,7 @@
               <th>Name</th>
               <th>Phone</th>
               <th>Move-in Date</th>
+              <th>Deposit</th>
               <th>Current Room</th>
               <th></th>
             </tr>

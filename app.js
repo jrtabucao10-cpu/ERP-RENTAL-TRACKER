@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "apartment-erp-demo-v4";
+﻿const STORAGE_KEY = "apartment-erp-demo-v5";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -222,9 +222,9 @@ const demoData = {
 };
 
 demoData.tenants = [
-  { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", roomId: demoData.apartments[0].id },
-  { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", roomId: demoData.apartments[1].id },
-  { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", roomId: demoData.apartments[2].id }
+  { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", deposit: 2000, roomId: demoData.apartments[0].id },
+  { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", deposit: 1800, roomId: demoData.apartments[1].id },
+  { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", deposit: 2500, roomId: demoData.apartments[2].id }
 ];
 
 demoData.expenses = [
@@ -308,15 +308,17 @@ function bindEvents() {
     const name = document.getElementById("tenant-name").value.trim();
     const phone = document.getElementById("tenant-phone").value.trim();
     const moveInDate = document.getElementById("move-in-date").value;
+    const deposit = Number(document.getElementById("tenant-deposit").value || 0);
     const roomId = document.getElementById("tenant-room").value;
 
-    if (!name || !phone || !moveInDate || !roomId) return;
+    if (!name || !phone || !moveInDate || deposit < 0 || !roomId) return;
 
     state.tenants.push({
       id: crypto.randomUUID(),
       name,
       phone,
       moveInDate,
+      deposit,
       roomId
     });
 
@@ -449,12 +451,20 @@ function renderRoomSelect() {
     return;
   }
 
-  const roomOptions = state.apartments
+  const month = getCurrentMonthValue();
+  const vacantApartments = state.apartments.filter((apartment) => !getTenantForRoom(apartment.id, month));
+  const vacantRoomOptions = vacantApartments
+    .map((apartment) => `<option value="${apartment.id}">${escapeHtml(apartment.unitNumber)}</option>`)
+    .join("");
+  const allRoomOptions = state.apartments
     .map((apartment) => `<option value="${apartment.id}">${escapeHtml(apartment.unitNumber)}</option>`)
     .join("");
 
-  els.tenantRoom.innerHTML = `<option value="">Select room...</option>` + roomOptions;
-  els.expenseRoom.innerHTML = `<option value="">Select apartment...</option>` + roomOptions;
+  els.tenantRoom.innerHTML = vacantApartments.length
+    ? `<option value="">Select vacant room...</option>` + vacantRoomOptions
+    : `<option value="">No vacant apartments available</option>`;
+  els.tenantRoom.disabled = !vacantApartments.length;
+  els.expenseRoom.innerHTML = `<option value="">Select apartment...</option>` + allRoomOptions;
 }
 
 function renderApartments() {
@@ -488,7 +498,7 @@ function renderApartments() {
 
 function renderTenants() {
   if (!state.tenants.length) {
-    renderEmpty(els.tenantsTable, 5);
+    renderEmpty(els.tenantsTable, 6);
     return;
   }
 
@@ -500,6 +510,7 @@ function renderTenants() {
           <td><strong>${escapeHtml(tenant.name)}</strong></td>
           <td>${escapeHtml(tenant.phone)}</td>
           <td>${formatDate(tenant.moveInDate)}</td>
+          <td>${formatMoney(tenant.deposit || 0)}</td>
           <td>${apartment ? escapeHtml(apartment.unitNumber) : "Room deleted"}</td>
           <td>
             <div class="row-actions">
@@ -604,6 +615,12 @@ function getGoogleMapsUrl(location) {
   const cleanLocation = String(location || "").trim();
   if (/^https?:\/\//i.test(cleanLocation)) return cleanLocation;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanLocation)}`;
+}
+
+function getGoogleMapsEmbedUrl(location) {
+  const cleanLocation = String(location || "").trim();
+  if (/^https?:\/\//i.test(cleanLocation)) return cleanLocation;
+  return `https://maps.google.com/maps?q=${encodeURIComponent(cleanLocation)}&z=16&output=embed`;
 }
 
 function showLocationMapPreview(location) {
@@ -885,4 +902,5 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
 
