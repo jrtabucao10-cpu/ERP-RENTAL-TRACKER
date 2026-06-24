@@ -254,8 +254,41 @@ select:focus {
 
 .location-input-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 8px;
+}
+
+.location-search-box {
+  position: relative;
+}
+
+.location-search-box input {
+  padding-right: 48px;
+}
+
+.location-search-icon {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 11px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.location-search-icon:hover,
+.location-search-icon:focus {
+  background: var(--green);
+  color: #fff;
 }
 
 .location-suggestions {
@@ -315,10 +348,6 @@ select:focus {
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.search-btn {
-  background: var(--green-soft);
 }
 
 form button,
