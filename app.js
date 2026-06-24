@@ -428,6 +428,7 @@ function bindEvents() {
     if (!log) return;
     log.amountPaid = Number(input.value || 0);
     updatePaymentStatusRow(input, log);
+    updateMonthlyTotalsRow();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     renderStats();
   });
@@ -520,7 +521,8 @@ function renderTenants() {
     return;
   }
 
-  els.tenantsTable.innerHTML = state.tenants
+  const totalDeposit = state.tenants.reduce((sum, tenant) => sum + Number(tenant.deposit || 0), 0);
+  const rows = state.tenants
     .map((tenant) => {
       const apartment = state.apartments.find((item) => item.id === tenant.roomId);
       return `
@@ -540,6 +542,14 @@ function renderTenants() {
       `;
     })
     .join("");
+
+  els.tenantsTable.innerHTML = rows + `
+    <tr class="total-row">
+      <td colspan="4">Total Deposit</td>
+      <td>${formatMoney(totalDeposit)}</td>
+      <td colspan="2"></td>
+    </tr>
+  `;
 }
 
 function renderLogs() {
@@ -553,7 +563,8 @@ function renderLogs() {
     return;
   }
 
-  els.logsTable.innerHTML = logs
+  const totals = getLogTotals(logs);
+  const rows = logs
     .map((log) => {
       const status = getPaymentStatus(log.rentDue, log.amountPaid);
       return `
@@ -573,6 +584,16 @@ function renderLogs() {
       `;
     })
     .join("");
+
+  els.logsTable.innerHTML = rows + `
+    <tr class="total-row">
+      <td colspan="3">Total</td>
+      <td data-log-total-due>${formatMoney(totals.rentDue)}</td>
+      <td data-log-total-paid>${formatMoney(totals.amountPaid)}</td>
+      <td data-log-total-balance>Balance: ${formatMoney(totals.balance)}</td>
+      <td></td>
+    </tr>
+  `;
 }
 
 function renderExpenses() {
@@ -582,9 +603,11 @@ function renderExpenses() {
     return;
   }
 
-  els.expensesTable.innerHTML = state.expenses
+  const sortedExpenses = state.expenses
     .slice()
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const totalExpenses = sortedExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const rows = sortedExpenses
     .map((expense) => {
       const apartment = state.apartments.find((item) => item.id === expense.roomId);
       return `
@@ -602,6 +625,14 @@ function renderExpenses() {
       `;
     })
     .join("");
+
+  els.expensesTable.innerHTML = rows + `
+    <tr class="total-row">
+      <td colspan="3">Total Expenses</td>
+      <td>${formatMoney(totalExpenses)}</td>
+      <td></td>
+    </tr>
+  `;
 }
 
 function renderStats() {
@@ -771,12 +802,35 @@ function getPaymentStatus(rentDue, amountPaid) {
   return "Paid";
 }
 
+function getLogTotals(logs) {
+  const rentDue = logs.reduce((sum, log) => sum + Number(log.rentDue || 0), 0);
+  const amountPaid = logs.reduce((sum, log) => sum + Number(log.amountPaid || 0), 0);
+  return {
+    rentDue,
+    amountPaid,
+    balance: rentDue - amountPaid
+  };
+}
+
 function updatePaymentStatusRow(input, log) {
   const status = getPaymentStatus(log.rentDue, log.amountPaid);
   const badge = input.closest("tr")?.querySelector("[data-payment-status]");
   if (!badge) return;
   badge.textContent = status;
   badge.className = `badge ${status.toLowerCase()}`;
+}
+
+function updateMonthlyTotalsRow() {
+  const month = els.targetMonth.value || getCurrentMonthValue();
+  const logs = state.logs.filter((log) => log.targetMonth === month);
+  const totals = getLogTotals(logs);
+  const totalDue = els.logsTable.querySelector("[data-log-total-due]");
+  const totalPaid = els.logsTable.querySelector("[data-log-total-paid]");
+  const totalBalance = els.logsTable.querySelector("[data-log-total-balance]");
+
+  if (totalDue) totalDue.textContent = formatMoney(totals.rentDue);
+  if (totalPaid) totalPaid.textContent = formatMoney(totals.amountPaid);
+  if (totalBalance) totalBalance.textContent = `Balance: ${formatMoney(totals.balance)}`;
 }
 
 function deleteRecord(type, id) {
@@ -869,6 +923,7 @@ function downloadExcelReport() {
           table { border-collapse: collapse; width: 100%; margin-bottom: 18px; }
           th { background: #e9f3ed; color: #0e2321; }
           th, td { border: 1px solid #ded8cc; padding: 8px; text-align: left; }
+          .report-total td { background: #e9f3ed; color: #24543e; font-weight: 700; }
         </style>
       </head>
       <body>
@@ -932,6 +987,11 @@ function openPdfReport() {
           th {
             background: #e9f3ed;
           }
+          .report-total td {
+            background: #e9f3ed;
+            color: #24543e;
+            font-weight: 700;
+          }
           .print-note {
             margin: 18px 0;
             padding: 10px 12px;
@@ -964,6 +1024,10 @@ function getReportSections() {
   const allLogs = state.logs
     .slice()
     .sort((a, b) => `${a.targetMonth}-${a.roomName}`.localeCompare(`${b.targetMonth}-${b.roomName}`, undefined, { numeric: true }));
+  const totalMonthlyRent = state.apartments.reduce((sum, apartment) => sum + Number(apartment.monthlyRent || 0), 0);
+  const totalDeposits = state.tenants.reduce((sum, tenant) => sum + Number(tenant.deposit || 0), 0);
+  const logTotals = getLogTotals(allLogs);
+  const totalExpenses = state.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
   return [
     {
@@ -978,7 +1042,8 @@ function getReportSections() {
           tenant ? "Yes" : "No",
           tenant ? tenant.name : "—"
         ];
-      })
+      }),
+      totalRows: [["Total Monthly Rent", formatMoney(totalMonthlyRent), "", "", ""]]
     },
     {
       title: "Tenant Profile",
@@ -993,7 +1058,8 @@ function getReportSections() {
           formatMoney(tenant.deposit || 0),
           apartment ? apartment.unitNumber : "Room deleted"
         ];
-      })
+      }),
+      totalRows: [["Total Deposit", "", "", "", formatMoney(totalDeposits), ""]]
     },
     {
       title: `Monthly Rental Record (${formatMonth(month)} selected)`,
@@ -1005,7 +1071,8 @@ function getReportSections() {
         formatMoney(log.rentDue),
         formatMoney(log.amountPaid),
         getPaymentStatus(log.rentDue, log.amountPaid)
-      ])
+      ]),
+      totalRows: [["Total", "", "", formatMoney(logTotals.rentDue), formatMoney(logTotals.amountPaid), `Balance: ${formatMoney(logTotals.balance)}`]]
     },
     {
       title: "Apartment Expenses",
@@ -1021,7 +1088,8 @@ function getReportSections() {
             expense.name,
             formatMoney(expense.amount)
           ];
-        })
+        }),
+      totalRows: [["Total Expenses", "", "", formatMoney(totalExpenses)]]
     }
   ];
 }
@@ -1043,6 +1111,7 @@ function renderReportSection(section) {
       </thead>
       <tbody>
         ${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}
+        ${(section.totalRows || []).map((row) => `<tr class="report-total">${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}
       </tbody>
     </table>
   `;
