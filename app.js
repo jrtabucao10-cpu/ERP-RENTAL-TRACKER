@@ -1,4 +1,4 @@
-const STORAGE_KEY = "apartment-erp-demo-v3";
+const STORAGE_KEY = "apartment-erp-demo-v4";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -55,13 +55,19 @@ const demoData = {
     { id: crypto.randomUUID(), unitNumber: "Apt 4", monthlyRent: 2800, location: "Al Barsha, Dubai" }
   ],
   tenants: [],
-  logs: []
+  logs: [],
+  expenses: []
 };
 
 demoData.tenants = [
   { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", roomId: demoData.apartments[0].id },
   { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", roomId: demoData.apartments[1].id },
   { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", roomId: demoData.apartments[2].id }
+];
+
+demoData.expenses = [
+  { id: crypto.randomUUID(), roomId: demoData.apartments[0].id, name: "AC filter cleaning", amount: 180, date: "2026-06-08" },
+  { id: crypto.randomUUID(), roomId: demoData.apartments[2].id, name: "Plumbing repair", amount: 320, date: "2026-06-18" }
 ];
 
 let state = loadState();
@@ -72,12 +78,16 @@ const els = {
   statOccupied: document.getElementById("stat-occupied"),
   statExpected: document.getElementById("stat-expected"),
   statCollected: document.getElementById("stat-collected"),
+  statExpenses: document.getElementById("stat-expenses"),
   apartmentForm: document.getElementById("apartment-form"),
   tenantForm: document.getElementById("tenant-form"),
+  expenseForm: document.getElementById("expense-form"),
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
   logsTable: document.getElementById("logs-table"),
+  expensesTable: document.getElementById("expenses-table"),
   tenantRoom: document.getElementById("tenant-room"),
+  expenseRoom: document.getElementById("expense-room"),
   targetMonth: document.getElementById("target-month"),
   searchLocation: document.getElementById("search-location"),
   apartmentLocation: document.getElementById("apartment-location"),
@@ -93,6 +103,7 @@ init();
 
 function init() {
   els.targetMonth.value = getCurrentMonthValue();
+  document.getElementById("expense-date").value = getTodayValue();
   els.currentMonthLabel.textContent = monthFormatter.format(monthValueToDate(getCurrentMonthValue()));
   bindEvents();
   if (state.apartments.length && !state.logs.length) {
@@ -140,6 +151,28 @@ function bindEvents() {
     });
 
     els.tenantForm.reset();
+    persistAndRender();
+  });
+
+  els.expenseForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const roomId = document.getElementById("expense-room").value;
+    const name = document.getElementById("expense-name").value.trim();
+    const amount = Number(document.getElementById("expense-amount").value || 0);
+    const date = document.getElementById("expense-date").value;
+
+    if (!roomId || !name || amount < 0 || !date) return;
+
+    state.expenses.push({
+      id: crypto.randomUUID(),
+      roomId,
+      name,
+      amount,
+      date
+    });
+
+    els.expenseForm.reset();
+    document.getElementById("expense-date").value = getTodayValue();
     persistAndRender();
   });
 
@@ -204,16 +237,18 @@ function bindEvents() {
 
   els.resetData.addEventListener("click", () => {
     if (!confirm("Clear all demo data?")) return;
-    state = { apartments: [], tenants: [], logs: [] };
+    state = { apartments: [], tenants: [], logs: [], expenses: [] };
     persistAndRender();
   });
 }
 
 function render() {
+  ensureStateShape();
   renderRoomSelect();
   renderApartments();
   renderTenants();
   renderLogs();
+  renderExpenses();
   renderStats();
 }
 
@@ -221,12 +256,16 @@ function renderRoomSelect() {
   els.tenantRoom.innerHTML = "";
   if (!state.apartments.length) {
     els.tenantRoom.innerHTML = `<option value="">Add an apartment first</option>`;
+    els.expenseRoom.innerHTML = `<option value="">Add an apartment first</option>`;
     return;
   }
 
-  els.tenantRoom.innerHTML = `<option value="">Select room...</option>` + state.apartments
+  const roomOptions = state.apartments
     .map((apartment) => `<option value="${apartment.id}">${escapeHtml(apartment.unitNumber)}</option>`)
     .join("");
+
+  els.tenantRoom.innerHTML = `<option value="">Select room...</option>` + roomOptions;
+  els.expenseRoom.innerHTML = `<option value="">Select apartment...</option>` + roomOptions;
 }
 
 function renderApartments() {
@@ -317,17 +356,49 @@ function renderLogs() {
     .join("");
 }
 
+function renderExpenses() {
+  ensureStateShape();
+  if (!state.expenses.length) {
+    renderEmpty(els.expensesTable, 5, "No expenses yet. Add an apartment expense above.");
+    return;
+  }
+
+  els.expensesTable.innerHTML = state.expenses
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .map((expense) => {
+      const apartment = state.apartments.find((item) => item.id === expense.roomId);
+      return `
+        <tr>
+          <td>${formatDate(expense.date)}</td>
+          <td><strong>${apartment ? escapeHtml(apartment.unitNumber) : "Apartment deleted"}</strong></td>
+          <td>${escapeHtml(expense.name)}</td>
+          <td>${formatMoney(expense.amount)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="small-btn danger" data-delete="expense" data-id="${expense.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
 function renderStats() {
   const month = getCurrentMonthValue();
   const currentLogs = state.logs.filter((log) => log.targetMonth === month);
+  const currentExpenses = state.expenses.filter((expense) => expense.date && expense.date.slice(0, 7) === month);
   const occupied = state.apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
   const expected = currentLogs.reduce((sum, log) => sum + Number(log.rentDue || 0), 0);
   const collected = currentLogs.reduce((sum, log) => sum + Number(log.amountPaid || 0), 0);
+  const expenses = currentExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
   els.statUnits.textContent = state.apartments.length;
   els.statOccupied.textContent = occupied;
   els.statExpected.textContent = formatMoney(expected);
   els.statCollected.textContent = formatMoney(collected);
+  els.statExpenses.textContent = formatMoney(expenses);
 }
 
 function renderLocation(location) {
@@ -353,12 +424,17 @@ function renderLocationSuggestions(query) {
     .filter(Boolean);
   const uniqueLocations = [...new Set([...savedLocations, ...locationSuggestions])];
 
-  const matches = uniqueLocations
+  let matches = uniqueLocations
     .filter((location) => {
       if (!cleanQuery) return true;
       return location.toLowerCase().includes(cleanQuery);
     })
     .slice(0, 8);
+
+  const typedLocation = String(query || "").trim();
+  if (typedLocation && !matches.some((location) => location.toLowerCase() === typedLocation.toLowerCase())) {
+    matches = [typedLocation, ...matches].slice(0, 8);
+  }
 
   if (!matches.length) {
     els.locationSuggestions.hidden = true;
@@ -370,7 +446,7 @@ function renderLocationSuggestions(query) {
     .map((location) => `
       <button type="button" class="location-suggestion" data-location-option="${escapeHtml(location)}">
         <strong>${highlightMatch(location, cleanQuery)}</strong>
-        <span>Use this location for Google Maps</span>
+        <span>${location === typedLocation ? "Use this typed location" : "Use this suggested location"}</span>
       </button>
     `)
     .join("");
@@ -439,6 +515,7 @@ function deleteRecord(type, id) {
     state.apartments = state.apartments.filter((item) => item.id !== id);
     state.tenants = state.tenants.filter((item) => item.roomId !== id);
     state.logs = state.logs.filter((item) => item.roomId !== id);
+    state.expenses = state.expenses.filter((item) => item.roomId !== id);
   }
 
   if (type === "tenant") {
@@ -455,18 +532,16 @@ function deleteRecord(type, id) {
     state.logs = state.logs.filter((item) => item.id !== id);
   }
 
+  if (type === "expense") {
+    state.expenses = state.expenses.filter((item) => item.id !== id);
+  }
+
   persistAndRender();
 }
 
 function searchTypedLocation() {
-  const location = els.apartmentLocation.value.trim();
-  if (!location) {
-    alert("Please type a location or paste a Google Maps link first.");
-    els.apartmentLocation.focus();
-    return;
-  }
-
-  window.open(getGoogleMapsUrl(location), "_blank", "noopener");
+  renderLocationSuggestions(els.apartmentLocation.value);
+  els.apartmentLocation.focus();
 }
 
 function downloadCurrentMonthCsv() {
@@ -515,6 +590,13 @@ function loadState() {
   return initial;
 }
 
+function ensureStateShape() {
+  state.apartments ||= [];
+  state.tenants ||= [];
+  state.logs ||= [];
+  state.expenses ||= [];
+}
+
 function persistAndRender() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   render();
@@ -531,6 +613,11 @@ function renderEmpty(target, colspan, message = "No records yet. Add data above 
 function getCurrentMonthValue() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getTodayValue() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 function monthValueToDate(monthValue) {

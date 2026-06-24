@@ -163,7 +163,7 @@ h2 {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -220,6 +220,10 @@ h2 {
 
 .tenants-form {
   grid-template-columns: 1.2fr 1fr 190px 1fr 170px;
+}
+
+.expense-form {
+  grid-template-columns: 1fr 1.3fr 160px 190px 160px;
 }
 
 label {
@@ -492,6 +496,7 @@ tbody tr:last-child td {
   .hero-grid,
   .stats-grid,
   .form-grid,
+  .expense-form,
   .tenants-form {
     grid-template-columns: 1fr;
   }

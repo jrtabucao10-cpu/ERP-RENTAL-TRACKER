@@ -54,6 +54,10 @@
         <span>Collected this month</span>
         <strong id="stat-collected">AED 0</strong>
       </article>
+      <article class="stat-card">
+        <span>Expenses this month</span>
+        <strong id="stat-expenses">AED 0</strong>
+      </article>
     </section>
 
     <section class="panel">
@@ -154,8 +158,8 @@
     <section class="panel">
       <div class="panel-head rental-head">
         <div>
-          <p class="eyebrow">C. Rental Month Log</p>
-          <h2>The Digital Handshake</h2>
+          <p class="eyebrow">C. Monthly Rental Record</p>
+          <h2>Monthly Rental Record</h2>
           <p>Generate one row per apartment room for the selected month. Payment status updates automatically.</p>
         </div>
         <div class="month-tools">
@@ -182,6 +186,51 @@
             </tr>
           </thead>
           <tbody id="logs-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">D. Expense Tracker</p>
+          <h2>Apartment Expenses</h2>
+          <p>Record maintenance, repair, cleaning, or other costs and assign each expense to an apartment.</p>
+        </div>
+      </div>
+
+      <form id="expense-form" class="form-grid expense-form">
+        <label>
+          Apartment
+          <select id="expense-room" required></select>
+        </label>
+        <label>
+          Expense name
+          <input id="expense-name" type="text" placeholder="e.g. AC repair" required>
+        </label>
+        <label>
+          Amount
+          <input id="expense-amount" type="number" min="0" step="1" placeholder="250" required>
+        </label>
+        <label>
+          Date
+          <input id="expense-date" type="date" required>
+        </label>
+        <button type="submit">Add expense</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Apartment</th>
+              <th>Expense</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="expenses-table"></tbody>
         </table>
       </div>
     </section>
