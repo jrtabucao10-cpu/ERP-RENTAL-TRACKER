@@ -12,10 +12,17 @@ const moneyFormatter = new Intl.NumberFormat("en-AE", {
 });
 
 const locationSuggestions = [
+  "Abu Hail, Dubai",
+  "Academic City, Dubai",
+  "Al Awir, Dubai",
   "Dubai Marina, Dubai",
   "Jumeirah Lake Towers, Dubai",
   "Business Bay, Dubai",
   "Al Barsha, Dubai",
+  "Al Barsha 1, Dubai",
+  "Al Barsha 2, Dubai",
+  "Al Barsha 3, Dubai",
+  "Al Barsha South, Dubai",
   "Downtown Dubai, Dubai",
   "Jumeirah Village Circle, Dubai",
   "Jumeirah Village Triangle, Dubai",
@@ -25,27 +32,182 @@ const locationSuggestions = [
   "Bur Dubai, Dubai",
   "Karama, Dubai",
   "Al Nahda, Dubai",
-  "Mirdif, Dubai",
-  "Dubai Sports City, Dubai",
-  "Dubai Investment Park, Dubai",
-  "Discovery Gardens, Dubai",
-  "Jebel Ali, Dubai",
-  "Palm Jumeirah, Dubai",
-  "Dubai Hills Estate, Dubai",
-  "Meydan, Dubai",
-  "Arjan, Dubai",
-  "Motor City, Dubai",
+  "Al Mamzar, Dubai",
+  "Al Mankhool, Dubai",
+  "Al Mina, Dubai",
+  "Al Mizhar, Dubai",
+  "Al Muraqqabat, Dubai",
+  "Al Murar, Dubai",
+  "Al Quoz, Dubai",
   "Al Qusais, Dubai",
+  "Al Rigga, Dubai",
+  "Al Safa, Dubai",
+  "Al Satwa, Dubai",
+  "Al Sufouh, Dubai",
+  "Al Twar, Dubai",
+  "Al Warqa, Dubai",
+  "Al Wasl, Dubai",
+  "Arabian Ranches, Dubai",
+  "Bluewaters Island, Dubai",
+  "Damac Hills, Dubai",
+  "Damac Hills 2, Dubai",
+  "Dubai Creek Harbour, Dubai",
+  "Dubai Festival City, Dubai",
+  "Dubai Harbour, Dubai",
+  "Dubai Healthcare City, Dubai",
+  "Dubai Hills Estate, Dubai",
+  "Dubai Investment Park, Dubai",
+  "Dubai Land, Dubai",
+  "Dubai Media City, Dubai",
+  "Dubai Production City, Dubai",
+  "Dubai Science Park, Dubai",
+  "Dubai Sports City, Dubai",
+  "Dubai Studio City, Dubai",
+  "Dubai South, Dubai",
+  "Emirates Hills, Dubai",
+  "Garhoud, Dubai",
+  "Hor Al Anz, Dubai",
+  "Jaddaf, Dubai",
+  "Jebel Ali, Dubai",
+  "Jumeirah, Dubai",
+  "Jumeirah 1, Dubai",
+  "Jumeirah 2, Dubai",
+  "Jumeirah 3, Dubai",
+  "Jumeirah Beach Residence, Dubai",
+  "Jumeirah Golf Estates, Dubai",
+  "Jumeirah Islands, Dubai",
+  "Jumeirah Park, Dubai",
+  "Liwan, Dubai",
+  "Mirdif, Dubai",
+  "Meydan, Dubai",
+  "Motor City, Dubai",
+  "Mudon, Dubai",
+  "Nad Al Hamar, Dubai",
+  "Nad Al Sheba, Dubai",
+  "Palm Jumeirah, Dubai",
+  "Ras Al Khor, Dubai",
+  "Remraam, Dubai",
+  "Sheikh Zayed Road, Dubai",
+  "Tecom / Barsha Heights, Dubai",
+  "The Greens, Dubai",
+  "The Springs, Dubai",
+  "The Lakes, Dubai",
+  "The Meadows, Dubai",
+  "The Gardens, Dubai",
+  "The Views, Dubai",
+  "Town Square, Dubai",
+  "Umm Hurair, Dubai",
+  "Umm Ramool, Dubai",
+  "Umm Suqeim, Dubai",
+  "Warsan, Dubai",
+  "Za'abeel, Dubai",
+  "Mirdif, Dubai",
+  "Discovery Gardens, Dubai",
+  "Arjan, Dubai",
   "Sharjah, United Arab Emirates",
-  "Al Nahda, Sharjah",
-  "Al Majaz, Sharjah",
+  "Abu Shagara, Sharjah",
+  "Al Azra, Sharjah",
+  "Al Butina, Sharjah",
+  "Al Darari, Sharjah",
+  "Al Fisht, Sharjah",
+  "Al Ghafia, Sharjah",
+  "Al Gharayen, Sharjah",
+  "Al Jazzat, Sharjah",
+  "Al Jubail, Sharjah",
   "Al Khan, Sharjah",
+  "Al Majaz, Sharjah",
+  "Al Mamzar, Sharjah",
+  "Al Mareija, Sharjah",
+  "Al Nahda, Sharjah",
+  "Al Nasserya, Sharjah",
+  "Al Qasimia, Sharjah",
+  "Al Rahmaniya, Sharjah",
+  "Al Ramla, Sharjah",
+  "Al Riffa, Sharjah",
+  "Al Rolla, Sharjah",
+  "Al Shahba, Sharjah",
+  "Al Taawun, Sharjah",
+  "Al Yarmook, Sharjah",
+  "Industrial Area, Sharjah",
+  "Muwailih, Sharjah",
   "Muwaileh, Sharjah",
+  "Rolla, Sharjah",
+  "University City, Sharjah",
+  "Khalidiyah, Sharjah",
+  "Kalba, Sharjah",
+  "Khor Fakkan, Sharjah",
+  "Dibba Al Hisn, Sharjah",
+  "Al Nahda, Sharjah",
   "Abu Dhabi, United Arab Emirates",
+  "Al Bateen, Abu Dhabi",
+  "Al Danah, Abu Dhabi",
+  "Al Falah, Abu Dhabi",
+  "Al Khalidiyah, Abu Dhabi",
+  "Al Markaziyah, Abu Dhabi",
+  "Al Maryah Island, Abu Dhabi",
+  "Al Mina, Abu Dhabi",
+  "Al Mushrif, Abu Dhabi",
+  "Al Muroor, Abu Dhabi",
+  "Al Nahyan, Abu Dhabi",
+  "Al Raha Beach, Abu Dhabi",
+  "Al Reef, Abu Dhabi",
   "Al Reem Island, Abu Dhabi",
+  "Al Rowdah, Abu Dhabi",
+  "Al Shamkha, Abu Dhabi",
+  "Al Wahda, Abu Dhabi",
+  "Al Zahiyah, Abu Dhabi",
+  "Baniyas, Abu Dhabi",
+  "Corniche, Abu Dhabi",
+  "Khalifa City, Abu Dhabi",
+  "Madinat Zayed, Abu Dhabi",
+  "Mohammed Bin Zayed City, Abu Dhabi",
+  "Mussafah, Abu Dhabi",
+  "Saadiyat Island, Abu Dhabi",
+  "Yas Island, Abu Dhabi",
+  "Al Ain, Abu Dhabi",
+  "Al Jimi, Al Ain",
+  "Al Muwaiji, Al Ain",
+  "Al Towayya, Al Ain",
+  "Falaj Hazza, Al Ain",
+  "Zakher, Al Ain",
+  "Ajman, United Arab Emirates",
+  "Al Bustan, Ajman",
+  "Al Hamidiya, Ajman",
+  "Al Jurf, Ajman",
+  "Al Mowaihat, Ajman",
+  "Al Nuaimiya, Ajman",
+  "Al Rashidiya, Ajman",
+  "Al Rawda, Ajman",
+  "Al Rumailah, Ajman",
+  "Ajman Corniche, Ajman",
+  "Emirates City, Ajman",
+  "Garden City, Ajman",
+  "Umm Al Quwain, United Arab Emirates",
+  "Al Salamah, Umm Al Quwain",
+  "Al Raas, Umm Al Quwain",
+  "Al Humrah, Umm Al Quwain",
+  "Falaj Al Mualla, Umm Al Quwain",
+  "Ras Al Khaimah, United Arab Emirates",
+  "Al Dhait, Ras Al Khaimah",
+  "Al Hamra Village, Ras Al Khaimah",
+  "Al Jazeera Al Hamra, Ras Al Khaimah",
+  "Al Nakheel, Ras Al Khaimah",
+  "Al Qusaidat, Ras Al Khaimah",
+  "Al Rams, Ras Al Khaimah",
+  "Khuzam, Ras Al Khaimah",
+  "Mina Al Arab, Ras Al Khaimah",
+  "Fujairah, United Arab Emirates",
+  "Al Faseel, Fujairah",
+  "Al Gurfa, Fujairah",
+  "Dibba Al Fujairah, Fujairah",
+  "Kalba Road, Fujairah",
+  "Mirbah, Fujairah",
+  "Sakamkam, Fujairah",
+  "Dibba, Fujairah",
+  "Masafi, Fujairah",
   "Khalifa City, Abu Dhabi",
   "Ajman, United Arab Emirates"
-];
+].filter((location, index, list) => list.indexOf(location) === index);
 
 const demoData = {
   apartments: [
@@ -92,6 +254,10 @@ const els = {
   searchLocation: document.getElementById("search-location"),
   apartmentLocation: document.getElementById("apartment-location"),
   locationSuggestions: document.getElementById("location-suggestions"),
+  locationMapPreview: document.getElementById("location-map-preview"),
+  locationMapFrame: document.getElementById("location-map-frame"),
+  mapPreviewTitle: document.getElementById("map-preview-title"),
+  closeMapPreview: document.getElementById("close-map-preview"),
   generateLog: document.getElementById("generate-log"),
   downloadLog: document.getElementById("download-log"),
   seedDemo: document.getElementById("seed-demo"),
@@ -195,12 +361,17 @@ function bindEvents() {
 
   els.apartmentLocation.addEventListener("keydown", (event) => {
     if (event.key === "Escape") hideLocationSuggestions();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchTypedLocation();
+    }
   });
 
   els.locationSuggestions.addEventListener("click", (event) => {
     const option = event.target.closest("[data-location-option]");
     if (!option) return;
     els.apartmentLocation.value = option.dataset.locationOption;
+    showLocationMapPreview(els.apartmentLocation.value);
     hideLocationSuggestions();
     els.apartmentLocation.focus();
   });
@@ -212,6 +383,10 @@ function bindEvents() {
 
   els.searchLocation.addEventListener("click", () => {
     searchTypedLocation();
+  });
+
+  els.closeMapPreview.addEventListener("click", () => {
+    hideLocationMapPreview();
   });
 
   els.logsTable.addEventListener("input", (event) => {
@@ -417,6 +592,30 @@ function getGoogleMapsUrl(location) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanLocation)}`;
 }
 
+function getGoogleMapsEmbedUrl(location) {
+  const cleanLocation = String(location || "").trim();
+  return `https://maps.google.com/maps?q=${encodeURIComponent(cleanLocation)}&output=embed`;
+}
+
+function showLocationMapPreview(location) {
+  const cleanLocation = String(location || "").trim();
+  if (!cleanLocation) {
+    alert("Please type a location first.");
+    els.apartmentLocation.focus();
+    return;
+  }
+
+  els.locationMapFrame.src = getGoogleMapsEmbedUrl(cleanLocation);
+  els.mapPreviewTitle.textContent = `Map preview: ${cleanLocation}`;
+  els.locationMapPreview.classList.toggle("with-suggestions", !els.locationSuggestions.hidden);
+  els.locationMapPreview.hidden = false;
+}
+
+function hideLocationMapPreview() {
+  els.locationMapPreview.hidden = true;
+  els.locationMapFrame.src = "";
+}
+
 function renderLocationSuggestions(query) {
   const cleanQuery = String(query || "").trim().toLowerCase();
   const savedLocations = state.apartments
@@ -429,11 +628,12 @@ function renderLocationSuggestions(query) {
       if (!cleanQuery) return true;
       return location.toLowerCase().includes(cleanQuery);
     })
-    .slice(0, 8);
+    .sort((a, b) => scoreLocationMatch(a, cleanQuery) - scoreLocationMatch(b, cleanQuery))
+    .slice(0, 14);
 
   const typedLocation = String(query || "").trim();
   if (typedLocation && !matches.some((location) => location.toLowerCase() === typedLocation.toLowerCase())) {
-    matches = [typedLocation, ...matches].slice(0, 8);
+    matches = [typedLocation, ...matches].slice(0, 14);
   }
 
   if (!matches.length) {
@@ -451,10 +651,14 @@ function renderLocationSuggestions(query) {
     `)
     .join("");
   els.locationSuggestions.hidden = false;
+  if (!els.locationMapPreview.hidden) {
+    els.locationMapPreview.classList.add("with-suggestions");
+  }
 }
 
 function hideLocationSuggestions() {
   els.locationSuggestions.hidden = true;
+  els.locationMapPreview.classList.remove("with-suggestions");
 }
 
 function highlightMatch(location, cleanQuery) {
@@ -467,6 +671,15 @@ function highlightMatch(location, cleanQuery) {
   const match = escapeHtml(location.slice(index, index + cleanQuery.length));
   const after = escapeHtml(location.slice(index + cleanQuery.length));
   return `${before}<mark>${match}</mark>${after}`;
+}
+
+function scoreLocationMatch(location, cleanQuery) {
+  if (!cleanQuery) return 0;
+  const lowerLocation = location.toLowerCase();
+  if (lowerLocation === cleanQuery) return 0;
+  if (lowerLocation.startsWith(cleanQuery)) return 1;
+  if (lowerLocation.split(/[,\s/]+/).some((word) => word.startsWith(cleanQuery))) return 2;
+  return 3;
 }
 
 function generateMonthLog(month) {
@@ -541,6 +754,7 @@ function deleteRecord(type, id) {
 
 function searchTypedLocation() {
   renderLocationSuggestions(els.apartmentLocation.value);
+  showLocationMapPreview(els.apartmentLocation.value);
   els.apartmentLocation.focus();
 }
 
