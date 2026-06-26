@@ -32,19 +32,19 @@
     </a>
 
     <nav class="sidebar-nav">
-      <a class="nav-item active" href="#dashboard"><span class="nav-icon">▣</span>Dashboard</a>
-      <a class="nav-item" href="#apartments"><span class="nav-icon">⌂</span>Apartments</a>
-      <a class="nav-item" href="#tenants"><span class="nav-icon">♟</span>Tenants &amp; visitors</a>
-      <a class="nav-item" href="#utilities"><span class="nav-icon">↯</span>Utilities</a>
-      <a class="nav-item" href="#payments"><span class="nav-icon">$</span>Payments</a>
-      <a class="nav-item" href="#expenses"><span class="nav-icon">↗</span>Expenses</a>
-      <a class="nav-item" href="#reports"><span class="nav-icon">▤</span>Reports</a>
-      <a class="nav-item" href="#dashboard"><span class="nav-icon">■</span>Users &amp; access</a>
+      <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">▣</span>Dashboard</a>
+      <a class="nav-item" href="#apartments" data-view-link="apartments"><span class="nav-icon">⌂</span>Apartments</a>
+      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">♟</span>Tenants &amp; visitors</a>
+      <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">↯</span>Utilities</a>
+      <a class="nav-item" href="#payments" data-view-link="payments"><span class="nav-icon">$</span>Payments</a>
+      <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">↗</span>Expenses</a>
+      <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">▤</span>Reports</a>
+      <a class="nav-item" href="#access" data-view-link="access"><span class="nav-icon">■</span>Users &amp; access</a>
     </nav>
   </aside>
 
   <div class="app-content">
-  <header id="dashboard" class="hero">
+  <header class="hero">
     <nav class="topbar">
       <div class="brand">
         <span class="brand-mark">ERP</span>
@@ -61,7 +61,7 @@
       </div>
     </nav>
 
-    <div class="hero-grid">
+    <div id="dashboard" class="hero-grid view active-view" data-view="dashboard">
       <div>
         <p class="eyebrow">Property Operations</p>
         <h1>Client summary for Mani 6, Mani 7, and Mani 8.</h1>
@@ -76,7 +76,7 @@
   </header>
 
   <main class="shell">
-    <section class="stats-grid" aria-label="Dashboard summary">
+    <section class="stats-grid view active-view" data-view="dashboard" aria-label="Dashboard summary">
       <article class="stat-card">
         <span>Total units</span>
         <strong id="stat-units">0</strong>
@@ -99,7 +99,7 @@
       </article>
     </section>
 
-    <section id="access" class="panel">
+    <section id="access" class="panel view" data-view="access">
       <div class="panel-head">
         <div>
           <p class="eyebrow">A. Property Tracker</p>
@@ -136,7 +136,7 @@
       </div>
     </section>
 
-    <section id="apartments" class="panel">
+    <section id="apartments" class="panel view" data-view="apartments">
       <div class="panel-head">
         <div>
           <p class="eyebrow">B. Apartments / Units Tracker</p>
@@ -191,7 +191,7 @@
       </div>
     </section>
 
-    <section id="tenants" class="panel">
+    <section id="tenants" class="panel view" data-view="tenants">
       <div class="panel-head">
         <div>
           <p class="eyebrow">C. Tenants Tracker</p>
@@ -299,7 +299,7 @@
       </div>
     </section>
 
-    <section id="reports" class="panel">
+    <section id="reports" class="panel view" data-view="reports">
       <div class="panel-head">
         <div>
           <p class="eyebrow">D. Client Data Summary</p>
@@ -340,7 +340,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel view" data-view="reports">
       <div class="panel-head">
         <div>
           <p class="eyebrow">E. Summary / Reports</p>
@@ -407,7 +407,7 @@
       </div>
     </section>
 
-    <section id="payments" class="panel">
+    <section id="payments" class="panel view" data-view="payments">
       <div class="panel-head rental-head">
         <div>
           <p class="eyebrow">F. Monthly Rental Record</p>
@@ -443,8 +443,31 @@
       </div>
     </section>
 
-    <span id="utilities" class="anchor-target" aria-hidden="true"></span>
-    <section id="expenses" class="panel">
+    <section id="utilities" class="panel view" data-view="utilities">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Utilities</p>
+          <h2>Utilities Overview</h2>
+          <p>Use this screen for utility-related apartment costs such as electricity, water, internet, cleaning, or maintenance charges.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Apartment</th>
+              <th>Utility / Expense</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="utilities-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="expenses" class="panel view" data-view="expenses">
       <div class="panel-head">
         <div>
           <p class="eyebrow">G. Expense Tracker</p>

@@ -300,6 +300,7 @@ const els = {
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
   clientSummaryTable: document.getElementById("client-summary-table"),
+  utilitiesTable: document.getElementById("utilities-table"),
   profitLossTable: document.getElementById("profit-loss-table"),
   reportMonthLabel: document.getElementById("report-month-label"),
   reportExpectedRent: document.getElementById("report-expected-rent"),
@@ -330,7 +331,9 @@ const els = {
   downloadPdf: document.getElementById("download-pdf"),
   seedDemo: document.getElementById("seed-demo"),
   signOut: document.getElementById("sign-out"),
-  emptyRowTemplate: document.getElementById("empty-row-template")
+  emptyRowTemplate: document.getElementById("empty-row-template"),
+  viewLinks: document.querySelectorAll("[data-view-link]"),
+  views: document.querySelectorAll("[data-view]")
 };
 
 init();
@@ -341,6 +344,7 @@ function init() {
   els.currentMonthLabel.textContent = monthFormatter.format(monthValueToDate(getCurrentMonthValue()));
   bindEvents();
   updateLoginView();
+  setActiveView(getInitialView());
   ensureStateShape();
   if (state.apartments.length && !state.logs.length) {
     generateMonthLog(getCurrentMonthValue());
@@ -350,6 +354,13 @@ function init() {
 }
 
 function bindEvents() {
+  els.viewLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      setActiveView(link.dataset.viewLink);
+    });
+  });
+
   els.loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
     if (els.loginPassword.value === DEMO_PASSWORD) {
@@ -596,7 +607,27 @@ function render() {
   renderReports();
   renderLogs();
   renderExpenses();
+  renderUtilities();
   renderStats();
+}
+
+function getInitialView() {
+  const hashView = window.location.hash.replace("#", "");
+  const allowedViews = [...els.viewLinks].map((link) => link.dataset.viewLink);
+  return allowedViews.includes(hashView) ? hashView : "dashboard";
+}
+
+function setActiveView(view) {
+  const activeView = view || "dashboard";
+  els.views.forEach((section) => {
+    section.classList.toggle("active-view", section.dataset.view === activeView);
+  });
+  els.viewLinks.forEach((link) => {
+    link.classList.toggle("active", link.dataset.viewLink === activeView);
+  });
+  if (window.location.hash !== `#${activeView}`) {
+    history.replaceState(null, "", `#${activeView}`);
+  }
 }
 
 function renderPropertySelect() {
@@ -902,6 +933,31 @@ function renderExpenses() {
       <td></td>
     </tr>
   `;
+}
+
+function renderUtilities() {
+  if (!state.expenses.length) {
+    renderEmpty(els.utilitiesTable, 4, "No utility or expense records yet.");
+    return;
+  }
+
+  const utilityRows = state.expenses
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .map((expense) => {
+      const apartment = state.apartments.find((item) => item.id === expense.roomId);
+      return `
+        <tr>
+          <td>${formatDate(expense.date)}</td>
+          <td><strong>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Apartment deleted"}</strong></td>
+          <td>${escapeHtml(expense.name)}</td>
+          <td>${formatMoney(expense.amount)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  els.utilitiesTable.innerHTML = utilityRows;
 }
 
 function renderStats() {
