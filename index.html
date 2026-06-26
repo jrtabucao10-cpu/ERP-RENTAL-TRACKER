@@ -6,7 +6,22 @@
   <title>Apartment Rental ERP Demo</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="is-locked">
+  <section id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <p class="eyebrow">Secure Access</p>
+      <h1>Apartment Rental ERP</h1>
+      <p>Log in to manage properties, units, tenants, payments, and expenses.</p>
+      <label>
+        Password
+        <input id="login-password" type="password" placeholder="Enter password" required>
+      </label>
+      <button type="submit">Log in</button>
+      <small id="login-error" class="login-error" hidden>Incorrect password. Please try again.</small>
+      <small class="login-hint">Demo password: admin123</small>
+    </form>
+  </section>
+
   <header class="hero">
     <nav class="topbar">
       <div class="brand">
@@ -20,7 +35,7 @@
         <button class="ghost-btn" id="download-excel" type="button">Download Excel</button>
         <button class="ghost-btn" id="download-pdf" type="button">Download PDF</button>
         <button class="ghost-btn" id="seed-demo">Reload demo data</button>
-        <button class="ghost-btn" id="reset-data">Clear all data</button>
+        <button class="ghost-btn" id="sign-out" type="button">Sign out</button>
       </div>
     </nav>
 
@@ -65,13 +80,54 @@
     <section class="panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">A. Apartments Tracker</p>
+          <p class="eyebrow">A. Property Tracker</p>
+          <h2>Property Profile</h2>
+          <p>Add each property/building first, then add apartments or units under that property.</p>
+        </div>
+      </div>
+
+      <form id="property-form" class="form-grid property-form">
+        <label>
+          Property name
+          <input id="property-name" type="text" placeholder="e.g. Hasabi Building Block B" required>
+        </label>
+        <label>
+          Property location
+          <input id="property-location" type="text" placeholder="e.g. Dubai Marina, Dubai">
+        </label>
+        <button type="submit">Add property</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Location</th>
+              <th>Total Units</th>
+              <th>Occupied</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="properties-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">B. Apartments / Units Tracker</p>
           <h2>Unit Profile</h2>
-          <p>Unit number, monthly rent, apartment location name, and automatic live occupancy status.</p>
+          <p>Choose a property, then add the apartment/unit number, monthly rent, location, and live occupancy status.</p>
         </div>
       </div>
 
       <form id="apartment-form" class="form-grid">
+        <label>
+          Property
+          <select id="apartment-property" required></select>
+        </label>
         <label>
           Unit number
           <input id="unit-number" type="text" placeholder="e.g. Apt 3" required>
@@ -99,6 +155,7 @@
         <table>
           <thead>
             <tr>
+              <th>Property</th>
               <th>Unit Number</th>
               <th>Monthly Rent</th>
               <th>Location</th>
@@ -115,7 +172,7 @@
     <section class="panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">B. Tenants Tracker</p>
+          <p class="eyebrow">C. Tenants Tracker</p>
           <h2>Tenant Profile</h2>
           <p>Name, phone number, deposit, move-in date, move-out date, and active apartment room.</p>
         </div>
@@ -170,7 +227,7 @@
     <section class="panel">
       <div class="panel-head rental-head">
         <div>
-          <p class="eyebrow">C. Monthly Rental Record</p>
+          <p class="eyebrow">D. Monthly Rental Record</p>
           <h2>Monthly Rental Record</h2>
           <p>Generate one row per apartment room for the selected month. Payment status updates automatically.</p>
         </div>
@@ -189,6 +246,7 @@
           <thead>
             <tr>
               <th>Target Month</th>
+              <th>Property</th>
               <th>Room</th>
               <th>Renter Name</th>
               <th>Rent Due</th>
@@ -205,7 +263,7 @@
     <section class="panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">D. Expense Tracker</p>
+          <p class="eyebrow">E. Expense Tracker</p>
           <h2>Apartment Expenses</h2>
           <p>Record maintenance, repair, cleaning, or other costs and assign each expense to an apartment.</p>
         </div>

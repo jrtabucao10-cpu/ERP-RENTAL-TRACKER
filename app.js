@@ -1,4 +1,6 @@
 ﻿const STORAGE_KEY = "apartment-erp-demo-v5";
+const AUTH_SESSION_KEY = "apartment-erp-demo-auth";
+const DEMO_PASSWORD = "admin123";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -210,11 +212,15 @@ const locationSuggestions = [
 ].filter((location, index, list) => list.indexOf(location) === index);
 
 const demoData = {
+  properties: [
+    { id: crypto.randomUUID(), name: "Guys Apartment Rental", location: "Dubai Marina, Dubai" },
+    { id: crypto.randomUUID(), name: "Hasabi Building Block B", location: "Jumeirah Lake Towers, Dubai" }
+  ],
   apartments: [
-    { id: crypto.randomUUID(), unitNumber: "Apt 1", monthlyRent: 3500, location: "Dubai Marina, Dubai" },
-    { id: crypto.randomUUID(), unitNumber: "Apt 2", monthlyRent: 3200, location: "Jumeirah Lake Towers, Dubai" },
-    { id: crypto.randomUUID(), unitNumber: "Apt 3", monthlyRent: 4200, location: "Business Bay, Dubai" },
-    { id: crypto.randomUUID(), unitNumber: "Apt 4", monthlyRent: 2800, location: "Al Barsha, Dubai" }
+    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 1", monthlyRent: 3500, location: "Dubai Marina, Dubai" },
+    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 2", monthlyRent: 3200, location: "Jumeirah Lake Towers, Dubai" },
+    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 3", monthlyRent: 4200, location: "Business Bay, Dubai" },
+    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 4", monthlyRent: 2800, location: "Al Barsha, Dubai" }
   ],
   tenants: [],
   logs: [],
@@ -226,6 +232,11 @@ demoData.tenants = [
   { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", moveOutDate: "2026-07-31", deposit: 1800, roomId: demoData.apartments[1].id },
   { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", moveOutDate: "", deposit: 2500, roomId: demoData.apartments[2].id }
 ];
+
+demoData.apartments[0].propertyId = demoData.properties[0].id;
+demoData.apartments[1].propertyId = demoData.properties[0].id;
+demoData.apartments[2].propertyId = demoData.properties[1].id;
+demoData.apartments[3].propertyId = demoData.properties[1].id;
 
 demoData.expenses = [
   { id: crypto.randomUUID(), roomId: demoData.apartments[0].id, name: "AC filter cleaning", amount: 180, date: "2026-06-08" },
@@ -242,13 +253,20 @@ const els = {
   statExpected: document.getElementById("stat-expected"),
   statCollected: document.getElementById("stat-collected"),
   statExpenses: document.getElementById("stat-expenses"),
+  loginScreen: document.getElementById("login-screen"),
+  loginForm: document.getElementById("login-form"),
+  loginPassword: document.getElementById("login-password"),
+  loginError: document.getElementById("login-error"),
+  propertyForm: document.getElementById("property-form"),
   apartmentForm: document.getElementById("apartment-form"),
   tenantForm: document.getElementById("tenant-form"),
   expenseForm: document.getElementById("expense-form"),
+  propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
   logsTable: document.getElementById("logs-table"),
   expensesTable: document.getElementById("expenses-table"),
+  apartmentProperty: document.getElementById("apartment-property"),
   tenantRoom: document.getElementById("tenant-room"),
   expenseRoom: document.getElementById("expense-room"),
   targetMonth: document.getElementById("target-month"),
@@ -265,7 +283,7 @@ const els = {
   downloadExcel: document.getElementById("download-excel"),
   downloadPdf: document.getElementById("download-pdf"),
   seedDemo: document.getElementById("seed-demo"),
-  resetData: document.getElementById("reset-data"),
+  signOut: document.getElementById("sign-out"),
   emptyRowTemplate: document.getElementById("empty-row-template")
 };
 
@@ -276,6 +294,8 @@ function init() {
   document.getElementById("expense-date").value = getTodayValue();
   els.currentMonthLabel.textContent = monthFormatter.format(monthValueToDate(getCurrentMonthValue()));
   bindEvents();
+  updateLoginView();
+  ensureStateShape();
   if (state.apartments.length && !state.logs.length) {
     generateMonthLog(getCurrentMonthValue());
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -284,16 +304,54 @@ function init() {
 }
 
 function bindEvents() {
+  els.loginForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (els.loginPassword.value === DEMO_PASSWORD) {
+      localStorage.setItem(AUTH_SESSION_KEY, "yes");
+      els.loginPassword.value = "";
+      els.loginError.hidden = true;
+      updateLoginView();
+      return;
+    }
+
+    els.loginError.hidden = false;
+    els.loginPassword.select();
+  });
+
+  els.signOut.addEventListener("click", () => {
+    localStorage.removeItem(AUTH_SESSION_KEY);
+    updateLoginView();
+  });
+
+  els.propertyForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = document.getElementById("property-name").value.trim();
+    const location = document.getElementById("property-location").value.trim();
+
+    if (!name) return;
+
+    state.properties.push({
+      id: crypto.randomUUID(),
+      name,
+      location
+    });
+
+    els.propertyForm.reset();
+    persistAndRender();
+  });
+
   els.apartmentForm.addEventListener("submit", (event) => {
     event.preventDefault();
+    const propertyId = document.getElementById("apartment-property").value;
     const unitNumber = document.getElementById("unit-number").value.trim();
     const monthlyRent = Number(document.getElementById("monthly-rent").value || 0);
     const location = document.getElementById("apartment-location").value.trim();
 
-    if (!unitNumber || monthlyRent < 0) return;
+    if (!propertyId || !unitNumber || monthlyRent < 0) return;
 
     state.apartments.push({
       id: crypto.randomUUID(),
+      propertyId,
       unitNumber,
       monthlyRent,
       location,
@@ -444,22 +502,59 @@ function bindEvents() {
     generateMonthLog(getCurrentMonthValue());
     persistAndRender();
   });
-
-  els.resetData.addEventListener("click", () => {
-    if (!confirm("Clear all demo data?")) return;
-    state = { apartments: [], tenants: [], logs: [], expenses: [] };
-    persistAndRender();
-  });
 }
 
 function render() {
   ensureStateShape();
+  renderPropertySelect();
+  renderProperties();
   renderRoomSelect();
   renderApartments();
   renderTenants();
   renderLogs();
   renderExpenses();
   renderStats();
+}
+
+function renderPropertySelect() {
+  if (!state.properties.length) {
+    els.apartmentProperty.innerHTML = `<option value="">Add a property first</option>`;
+    els.apartmentProperty.disabled = true;
+    return;
+  }
+
+  els.apartmentProperty.disabled = false;
+  els.apartmentProperty.innerHTML = `<option value="">Select property...</option>` + state.properties
+    .map((property) => `<option value="${property.id}">${escapeHtml(property.name)}</option>`)
+    .join("");
+}
+
+function renderProperties() {
+  if (!state.properties.length) {
+    renderEmpty(els.propertiesTable, 5, "No properties yet. Add a property/building above first.");
+    return;
+  }
+
+  const month = getCurrentMonthValue();
+  els.propertiesTable.innerHTML = state.properties
+    .map((property) => {
+      const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
+      const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
+      return `
+        <tr>
+          <td><strong>${escapeHtml(property.name)}</strong></td>
+          <td>${escapeHtml(property.location || "—")}</td>
+          <td>${apartments.length}</td>
+          <td>${occupied}</td>
+          <td>
+            <div class="row-actions">
+              <button class="small-btn danger" data-delete="property" data-id="${property.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 function renderRoomSelect() {
@@ -473,10 +568,10 @@ function renderRoomSelect() {
   const month = getCurrentMonthValue();
   const vacantApartments = state.apartments.filter((apartment) => !getTenantForRoom(apartment.id, month));
   const vacantRoomOptions = vacantApartments
-    .map((apartment) => `<option value="${apartment.id}">${escapeHtml(apartment.unitNumber)}</option>`)
+    .map((apartment) => `<option value="${apartment.id}">${escapeHtml(getApartmentLabel(apartment))}</option>`)
     .join("");
   const allRoomOptions = state.apartments
-    .map((apartment) => `<option value="${apartment.id}">${escapeHtml(apartment.unitNumber)}</option>`)
+    .map((apartment) => `<option value="${apartment.id}">${escapeHtml(getApartmentLabel(apartment))}</option>`)
     .join("");
 
   els.tenantRoom.innerHTML = vacantApartments.length
@@ -488,22 +583,24 @@ function renderRoomSelect() {
 
 function renderApartments() {
   if (!state.apartments.length) {
-    renderEmpty(els.apartmentsTable, 6);
+    renderEmpty(els.apartmentsTable, 7);
     return;
   }
 
   const month = getCurrentMonthValue();
   els.apartmentsTable.innerHTML = state.apartments
     .map((apartment) => {
+      const property = getPropertyById(apartment.propertyId);
       const tenant = getTenantForRoom(apartment.id, month);
       const occupied = Boolean(tenant);
       return `
         <tr>
+          <td>${escapeHtml(property?.name || "No property")}</td>
           <td><strong>${escapeHtml(apartment.unitNumber)}</strong></td>
           <td>${formatMoney(apartment.monthlyRent)}</td>
           <td>${renderLocation(apartment.location, apartment.mapQuery)}</td>
           <td><span class="badge ${occupied ? "yes" : "no"}">${occupied ? "Yes" : "No"}</span></td>
-          <td>${tenant ? escapeHtml(tenant.name) : "â€”"}</td>
+          <td>${tenant ? escapeHtml(tenant.name) : "—"}</td>
           <td>
             <div class="row-actions">
               <button class="small-btn danger" data-delete="apartment" data-id="${apartment.id}">Delete</button>
@@ -532,7 +629,7 @@ function renderTenants() {
           <td>${formatDate(tenant.moveInDate)}</td>
           <td>${tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present"}</td>
           <td>${formatMoney(tenant.deposit || 0)}</td>
-          <td>${apartment ? escapeHtml(apartment.unitNumber) : "Room deleted"}</td>
+          <td>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Room deleted"}</td>
           <td>
             <div class="row-actions">
               <button class="small-btn danger" data-delete="tenant" data-id="${tenant.id}">Delete</button>
@@ -559,7 +656,7 @@ function renderLogs() {
     .sort((a, b) => a.roomName.localeCompare(b.roomName, undefined, { numeric: true }));
 
   if (!logs.length) {
-    renderEmpty(els.logsTable, 7, "No monthly rows yet. Choose a target month and click Generate month log.");
+    renderEmpty(els.logsTable, 8, "No monthly rows yet. Choose a target month and click Generate month log.");
     return;
   }
 
@@ -570,6 +667,7 @@ function renderLogs() {
       return `
         <tr>
           <td>${formatMonth(log.targetMonth)}</td>
+          <td>${escapeHtml(log.propertyName || getPropertyByApartmentId(log.roomId)?.name || "—")}</td>
           <td><strong>${escapeHtml(log.roomName)}</strong></td>
           <td>${escapeHtml(log.renterName || "Vacant")}</td>
           <td>${formatMoney(log.rentDue)}</td>
@@ -587,7 +685,7 @@ function renderLogs() {
 
   els.logsTable.innerHTML = rows + `
     <tr class="total-row">
-      <td colspan="3">Total</td>
+      <td colspan="4">Total</td>
       <td data-log-total-due>${formatMoney(totals.rentDue)}</td>
       <td data-log-total-paid>${formatMoney(totals.amountPaid)}</td>
       <td data-log-total-balance>Balance: ${formatMoney(totals.balance)}</td>
@@ -613,7 +711,7 @@ function renderExpenses() {
       return `
         <tr>
           <td>${formatDate(expense.date)}</td>
-          <td><strong>${apartment ? escapeHtml(apartment.unitNumber) : "Apartment deleted"}</strong></td>
+          <td><strong>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Apartment deleted"}</strong></td>
           <td>${escapeHtml(expense.name)}</td>
           <td>${formatMoney(expense.amount)}</td>
           <td>
@@ -651,9 +749,23 @@ function renderStats() {
   els.statExpenses.textContent = formatMoney(expenses);
 }
 
+function getPropertyById(propertyId) {
+  return state.properties.find((property) => property.id === propertyId);
+}
+
+function getPropertyByApartmentId(apartmentId) {
+  const apartment = state.apartments.find((item) => item.id === apartmentId);
+  return apartment ? getPropertyById(apartment.propertyId) : null;
+}
+
+function getApartmentLabel(apartment) {
+  const property = getPropertyById(apartment.propertyId);
+  return property ? `${property.name} — ${apartment.unitNumber}` : apartment.unitNumber;
+}
+
 function renderLocation(location, mapQuery = location) {
   const cleanLocation = String(location || "").trim();
-  if (!cleanLocation) return "â€”";
+  if (!cleanLocation) return "—";
 
   return `
     <a class="map-link" href="${escapeHtml(getGoogleMapsUrl(mapQuery || cleanLocation))}" target="_blank" rel="noopener">Open Maps</a>
@@ -719,6 +831,16 @@ function hideLocationSuggestions() {
   els.locationSuggestions.hidden = true;
 }
 
+function updateLoginView() {
+  const isLoggedIn = localStorage.getItem(AUTH_SESSION_KEY) === "yes";
+  document.body.classList.toggle("is-locked", !isLoggedIn);
+  els.loginScreen.hidden = isLoggedIn;
+  els.loginScreen.setAttribute("aria-hidden", String(isLoggedIn));
+  if (!isLoggedIn) {
+    setTimeout(() => els.loginPassword.focus(), 50);
+  }
+}
+
 function getLocationMatches(query) {
   const cleanQuery = String(query || "").trim().toLowerCase();
   const savedLocations = state.apartments
@@ -760,9 +882,12 @@ function generateMonthLog(month) {
   state.apartments.forEach((apartment) => {
     const existing = state.logs.find((log) => log.targetMonth === month && log.roomId === apartment.id);
     const tenant = getTenantForRoom(apartment.id, month);
+    const property = getPropertyById(apartment.propertyId);
     const row = {
       targetMonth: month,
       roomId: apartment.id,
+      propertyId: apartment.propertyId || "",
+      propertyName: property?.name || "",
       roomName: apartment.unitNumber,
       renterId: tenant?.id || "",
       renterName: tenant?.name || "",
@@ -834,6 +959,19 @@ function updateMonthlyTotalsRow() {
 }
 
 function deleteRecord(type, id) {
+  if (!confirmPasswordForDelete()) return;
+
+  if (type === "property") {
+    const apartmentIds = state.apartments
+      .filter((item) => item.propertyId === id)
+      .map((item) => item.id);
+    state.properties = state.properties.filter((item) => item.id !== id);
+    state.apartments = state.apartments.filter((item) => item.propertyId !== id);
+    state.tenants = state.tenants.filter((item) => !apartmentIds.includes(item.roomId));
+    state.logs = state.logs.filter((item) => !apartmentIds.includes(item.roomId));
+    state.expenses = state.expenses.filter((item) => !apartmentIds.includes(item.roomId));
+  }
+
   if (type === "apartment") {
     state.apartments = state.apartments.filter((item) => item.id !== id);
     state.tenants = state.tenants.filter((item) => item.roomId !== id);
@@ -862,6 +1000,16 @@ function deleteRecord(type, id) {
   persistAndRender();
 }
 
+function confirmPasswordForDelete() {
+  const password = prompt("Please enter the login password to delete this record.");
+  if (password === null) return false;
+  if (password !== DEMO_PASSWORD) {
+    alert("Incorrect password. Delete cancelled.");
+    return false;
+  }
+  return true;
+}
+
 function searchTypedLocation() {
   const location = els.apartmentLocation.value.trim();
   if (!location) {
@@ -887,9 +1035,10 @@ function downloadCurrentMonthCsv() {
   }
 
   const rows = [
-    ["Target Month", "Room", "Renter Name", "Rent Due", "Amount Paid", "Payment Status"],
+    ["Target Month", "Property", "Room", "Renter Name", "Rent Due", "Amount Paid", "Payment Status"],
     ...logs.map((log) => [
       formatMonth(log.targetMonth),
+      log.propertyName || getPropertyByApartmentId(log.roomId)?.name || "",
       log.roomName,
       log.renterName || "Vacant",
       log.rentDue,
@@ -1031,11 +1180,27 @@ function getReportSections() {
 
   return [
     {
+      title: "Property Profile",
+      headers: ["Property", "Location", "Total Units", "Occupied Units"],
+      rows: state.properties.map((property) => {
+        const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
+        const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, getCurrentMonthValue())).length;
+        return [
+          property.name,
+          property.location || "—",
+          apartments.length,
+          occupied
+        ];
+      })
+    },
+    {
       title: "Unit Profile",
-      headers: ["Unit Number", "Monthly Rent", "Location", "Occupied This Month", "Current Tenant"],
+      headers: ["Property", "Unit Number", "Monthly Rent", "Location", "Occupied This Month", "Current Tenant"],
       rows: state.apartments.map((apartment) => {
+        const property = getPropertyById(apartment.propertyId);
         const tenant = getTenantForRoom(apartment.id, getCurrentMonthValue());
         return [
+          property?.name || "No property",
           apartment.unitNumber,
           formatMoney(apartment.monthlyRent),
           apartment.location || "—",
@@ -1043,7 +1208,7 @@ function getReportSections() {
           tenant ? tenant.name : "—"
         ];
       }),
-      totalRows: [["Total Monthly Rent", formatMoney(totalMonthlyRent), "", "", ""]]
+      totalRows: [["Total Monthly Rent", "", formatMoney(totalMonthlyRent), "", "", ""]]
     },
     {
       title: "Tenant Profile",
@@ -1056,23 +1221,24 @@ function getReportSections() {
           formatDate(tenant.moveInDate),
           tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present",
           formatMoney(tenant.deposit || 0),
-          apartment ? apartment.unitNumber : "Room deleted"
+          apartment ? getApartmentLabel(apartment) : "Room deleted"
         ];
       }),
       totalRows: [["Total Deposit", "", "", "", formatMoney(totalDeposits), ""]]
     },
     {
       title: `Monthly Rental Record (${formatMonth(month)} selected)`,
-      headers: ["Target Month", "Room", "Renter Name", "Rent Due", "Amount Paid", "Payment Status"],
+      headers: ["Target Month", "Property", "Room", "Renter Name", "Rent Due", "Amount Paid", "Payment Status"],
       rows: allLogs.map((log) => [
         formatMonth(log.targetMonth),
+        log.propertyName || getPropertyByApartmentId(log.roomId)?.name || "—",
         log.roomName,
         log.renterName || "Vacant",
         formatMoney(log.rentDue),
         formatMoney(log.amountPaid),
         getPaymentStatus(log.rentDue, log.amountPaid)
       ]),
-      totalRows: [["Total", "", "", formatMoney(logTotals.rentDue), formatMoney(logTotals.amountPaid), `Balance: ${formatMoney(logTotals.balance)}`]]
+      totalRows: [["Total", "", "", "", formatMoney(logTotals.rentDue), formatMoney(logTotals.amountPaid), `Balance: ${formatMoney(logTotals.balance)}`]]
     },
     {
       title: "Apartment Expenses",
@@ -1084,7 +1250,7 @@ function getReportSections() {
           const apartment = state.apartments.find((item) => item.id === expense.roomId);
           return [
             formatDate(expense.date),
-            apartment ? apartment.unitNumber : "Apartment deleted",
+            apartment ? getApartmentLabel(apartment) : "Apartment deleted",
             expense.name,
             formatMoney(expense.amount)
           ];
@@ -1140,10 +1306,26 @@ function loadState() {
 }
 
 function ensureStateShape() {
+  state.properties ||= [];
   state.apartments ||= [];
   state.tenants ||= [];
   state.logs ||= [];
   state.expenses ||= [];
+
+  if (!state.properties.length && state.apartments.length) {
+    state.properties.push({
+      id: crypto.randomUUID(),
+      name: "Main Property",
+      location: ""
+    });
+  }
+
+  if (state.properties.length) {
+    const fallbackPropertyId = state.properties[0].id;
+    state.apartments.forEach((apartment) => {
+      apartment.propertyId ||= fallbackPropertyId;
+    });
+  }
 }
 
 function persistAndRender() {
@@ -1183,7 +1365,7 @@ function formatMonth(monthValue) {
 }
 
 function formatDate(value) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",

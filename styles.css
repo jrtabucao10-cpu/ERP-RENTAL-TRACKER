@@ -33,6 +33,66 @@ button {
   cursor: pointer;
 }
 
+.is-locked > header,
+.is-locked > main {
+  display: none;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(199, 146, 45, 0.20), transparent 34%),
+    linear-gradient(135deg, #fffdf8 0%, #f3eee3 100%);
+}
+
+.login-screen[hidden] {
+  display: none;
+}
+
+.login-card {
+  width: min(460px, 100%);
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.login-card h1 {
+  font-size: clamp(34px, 7vw, 52px);
+}
+
+.login-card p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.login-card button {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 900;
+}
+
+.login-error {
+  display: block;
+  margin-top: 12px;
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.login-hint {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
 .hero {
   padding: 26px clamp(18px, 4vw, 64px) 42px;
   background:
@@ -212,10 +272,14 @@ h2 {
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.4fr 190px;
+  grid-template-columns: 1fr 1fr 1fr 1.4fr 190px;
   gap: 14px;
   align-items: end;
   margin-bottom: 20px;
+}
+
+.property-form {
+  grid-template-columns: 1.3fr 1.3fr 190px;
 }
 
 .tenants-form {
@@ -595,6 +659,7 @@ tbody tr:last-child td {
   .stats-grid,
   .form-grid,
   .expense-form,
+  .property-form,
   .tenants-form {
     grid-template-columns: 1fr;
   }
