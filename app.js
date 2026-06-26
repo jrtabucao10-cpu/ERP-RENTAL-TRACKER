@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "apartment-erp-demo-v5";
+const STORAGE_KEY = "apartment-erp-demo-v7";
 const AUTH_SESSION_KEY = "apartment-erp-demo-auth";
 const DEMO_PASSWORD = "admin123";
 
@@ -211,37 +211,72 @@ const locationSuggestions = [
   "Ajman, United Arab Emirates"
 ].filter((location, index, list) => list.indexOf(location) === index);
 
-const demoData = {
-  properties: [
-    { id: crypto.randomUUID(), name: "Guys Apartment Rental", location: "Dubai Marina, Dubai" },
-    { id: crypto.randomUUID(), name: "Hasabi Building Block B", location: "Jumeirah Lake Towers, Dubai" }
-  ],
-  apartments: [
-    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 1", monthlyRent: 3500, location: "Dubai Marina, Dubai" },
-    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 2", monthlyRent: 3200, location: "Jumeirah Lake Towers, Dubai" },
-    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 3", monthlyRent: 4200, location: "Business Bay, Dubai" },
-    { id: crypto.randomUUID(), propertyId: "", unitNumber: "Apt 4", monthlyRent: 2800, location: "Al Barsha, Dubai" }
-  ],
-  tenants: [],
-  logs: [],
-  expenses: []
-};
+const demoData = createManiDemoData();
 
-demoData.tenants = [
-  { id: crypto.randomUUID(), name: "Maria Santos", phone: "+971 50 123 4567", moveInDate: "2026-05-10", moveOutDate: "", deposit: 2000, roomId: demoData.apartments[0].id },
-  { id: crypto.randomUUID(), name: "Ahmed Khan", phone: "+971 55 222 7788", moveInDate: "2026-06-01", moveOutDate: "2026-07-31", deposit: 1800, roomId: demoData.apartments[1].id },
-  { id: crypto.randomUUID(), name: "Liza Cruz", phone: "+971 52 800 1199", moveInDate: "2026-06-15", moveOutDate: "", deposit: 2500, roomId: demoData.apartments[2].id }
-];
+function createManiDemoData() {
+  const properties = [
+    { id: crypto.randomUUID(), name: "Mani 6", location: "" },
+    { id: crypto.randomUUID(), name: "Mani 7", location: "" },
+    { id: crypto.randomUUID(), name: "Mani 8", location: "" }
+  ];
+  const propertyByName = Object.fromEntries(properties.map((property) => [property.name, property]));
+  const apartments = [
+    ...createUnits(propertyByName["Mani 6"].id, "SF", 11),
+    ...createUnits(propertyByName["Mani 7"].id, "M7", 11),
+    ...createUnits(propertyByName["Mani 8"].id, "M8", 34)
+  ];
+  const unitByNumber = Object.fromEntries(apartments.map((apartment) => [apartment.unitNumber, apartment]));
 
-demoData.apartments[0].propertyId = demoData.properties[0].id;
-demoData.apartments[1].propertyId = demoData.properties[0].id;
-demoData.apartments[2].propertyId = demoData.properties[1].id;
-demoData.apartments[3].propertyId = demoData.properties[1].id;
+  return {
+    properties,
+    apartments,
+    tenants: [
+      createDemoTenant("T-1001", "Maria Santos", unitByNumber["SF-01"], "2026-01-10", "2026-01-15", "2026-12-31", 1400, 2800, "Received", "Filipino", "Female", "Single", "+971 50 123 4567", "+63 917 111 2222", "maria@example.com"),
+      createDemoTenant("T-1002", "Ahmed Khan", unitByNumber["M7-01"], "2026-02-01", "2026-02-05", "2027-01-31", 1500, 3000, "Received", "Pakistani", "Male", "Couple", "+971 55 222 7788", "+92 300 222 7788", "ahmed@example.com"),
+      createDemoTenant("T-1003", "Liza Cruz", unitByNumber["M8-01"], "2026-03-12", "2026-03-15", "2026-09-14", 1300, 2600, "Used by tenant", "Filipino", "Female", "Family", "+971 52 800 1199", "+63 920 800 1199", "liza@example.com")
+    ],
+    logs: [],
+    expenses: [
+      { id: crypto.randomUUID(), roomId: unitByNumber["SF-01"].id, name: "AC filter cleaning", amount: 180, date: "2026-06-08" },
+      { id: crypto.randomUUID(), roomId: unitByNumber["M8-01"].id, name: "Plumbing repair", amount: 320, date: "2026-06-18" }
+    ]
+  };
+}
 
-demoData.expenses = [
-  { id: crypto.randomUUID(), roomId: demoData.apartments[0].id, name: "AC filter cleaning", amount: 180, date: "2026-06-08" },
-  { id: crypto.randomUUID(), roomId: demoData.apartments[2].id, name: "Plumbing repair", amount: 320, date: "2026-06-18" }
-];
+function createUnits(propertyId, prefix, count) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: crypto.randomUUID(),
+    propertyId,
+    unitNumber: `${prefix}-${String(index + 1).padStart(2, "0")}`,
+    monthlyRent: 0,
+    location: "",
+    mapQuery: ""
+  }));
+}
+
+function createDemoTenant(tenantIdNumber, name, apartment, contractSignUpDate, moveInDate, contractEndDate, monthlyRent, deposit, depositStatus, nationality, gender, occupancy, localPhone, internationalPhone, email) {
+  apartment.monthlyRent = monthlyRent;
+  return {
+    id: crypto.randomUUID(),
+    tenantIdNumber,
+    name,
+    phone: localPhone,
+    localPhone,
+    internationalPhone,
+    email,
+    contractSignUpDate,
+    moveInDate,
+    moveOutDate: contractEndDate,
+    contractEndDate,
+    monthlyRent,
+    deposit,
+    depositStatus,
+    nationality,
+    gender,
+    occupancy,
+    roomId: apartment.id
+  };
+}
 
 let state = loadState();
 let selectedMapQuery = "";
@@ -264,6 +299,17 @@ const els = {
   propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
+  clientSummaryTable: document.getElementById("client-summary-table"),
+  profitLossTable: document.getElementById("profit-loss-table"),
+  reportMonthLabel: document.getElementById("report-month-label"),
+  reportExpectedRent: document.getElementById("report-expected-rent"),
+  reportCollectedRent: document.getElementById("report-collected-rent"),
+  reportOutstandingRent: document.getElementById("report-outstanding-rent"),
+  reportExpenses: document.getElementById("report-expenses"),
+  reportNetProfit: document.getElementById("report-net-profit"),
+  reportDepositsReceived: document.getElementById("report-deposits-received"),
+  reportDepositsReturned: document.getElementById("report-deposits-returned"),
+  reportDepositsUsed: document.getElementById("report-deposits-used"),
   logsTable: document.getElementById("logs-table"),
   expensesTable: document.getElementById("expenses-table"),
   apartmentProperty: document.getElementById("apartment-property"),
@@ -365,26 +411,55 @@ function bindEvents() {
 
   els.tenantForm.addEventListener("submit", (event) => {
     event.preventDefault();
+    const tenantIdNumber = document.getElementById("tenant-id-number").value.trim();
     const name = document.getElementById("tenant-name").value.trim();
-    const phone = document.getElementById("tenant-phone").value.trim();
+    const localPhone = document.getElementById("tenant-phone").value.trim();
+    const internationalPhone = document.getElementById("tenant-international-phone").value.trim();
+    const email = document.getElementById("tenant-email").value.trim();
+    const contractSignUpDate = document.getElementById("contract-signup-date").value;
     const moveInDate = document.getElementById("move-in-date").value;
-    const moveOutDate = document.getElementById("move-out-date").value;
+    const contractEndDate = document.getElementById("move-out-date").value;
+    const monthlyRent = Number(document.getElementById("tenant-monthly-rent").value || 0);
     const deposit = Number(document.getElementById("tenant-deposit").value || 0);
+    const depositStatus = document.getElementById("deposit-status").value;
+    const nationality = document.getElementById("tenant-nationality").value.trim();
+    const gender = document.getElementById("tenant-gender").value;
+    const occupancy = document.getElementById("tenant-occupancy").value;
     const roomId = document.getElementById("tenant-room").value;
 
-    if (!name || !phone || !moveInDate || deposit < 0 || !roomId) return;
-    if (moveOutDate && new Date(`${moveOutDate}T00:00:00`) < new Date(`${moveInDate}T00:00:00`)) {
-      alert("Move-out date cannot be before the move-in date.");
+    if (!tenantIdNumber || !name || !localPhone || !contractSignUpDate || !moveInDate || !contractEndDate || monthlyRent < 0 || deposit < 0 || !roomId) return;
+    if (new Date(`${contractEndDate}T00:00:00`) < new Date(`${contractSignUpDate}T00:00:00`)) {
+      alert("Contract end cannot be before the contract sign up date.");
       return;
+    }
+    if (new Date(`${contractEndDate}T00:00:00`) < new Date(`${moveInDate}T00:00:00`)) {
+      alert("Contract end cannot be before the moving-in start date.");
+      return;
+    }
+
+    const apartment = state.apartments.find((item) => item.id === roomId);
+    if (apartment) {
+      apartment.monthlyRent = monthlyRent;
     }
 
     state.tenants.push({
       id: crypto.randomUUID(),
+      tenantIdNumber,
       name,
-      phone,
+      phone: localPhone,
+      localPhone,
+      internationalPhone,
+      email,
+      contractSignUpDate,
       moveInDate,
-      moveOutDate,
+      moveOutDate: contractEndDate,
+      contractEndDate,
+      monthlyRent,
       deposit,
+      depositStatus,
+      nationality,
+      gender,
+      occupancy,
       roomId
     });
 
@@ -417,6 +492,11 @@ function bindEvents() {
   els.generateLog.addEventListener("click", () => {
     generateMonthLog(els.targetMonth.value || getCurrentMonthValue());
     persistAndRender();
+  });
+
+  els.targetMonth.addEventListener("change", () => {
+    renderLogs();
+    renderReports();
   });
 
   els.downloadLog.addEventListener("click", () => {
@@ -489,6 +569,7 @@ function bindEvents() {
     updateMonthlyTotalsRow();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     renderStats();
+    renderReports();
   });
 
   document.addEventListener("click", (event) => {
@@ -511,6 +592,8 @@ function render() {
   renderRoomSelect();
   renderApartments();
   renderTenants();
+  renderClientSummary();
+  renderReports();
   renderLogs();
   renderExpenses();
   renderStats();
@@ -614,7 +697,7 @@ function renderApartments() {
 
 function renderTenants() {
   if (!state.tenants.length) {
-    renderEmpty(els.tenantsTable, 7);
+    renderEmpty(els.tenantsTable, 10);
     return;
   }
 
@@ -622,14 +705,19 @@ function renderTenants() {
   const rows = state.tenants
     .map((tenant) => {
       const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+      const status = getContractStatus(tenant);
       return `
         <tr>
+          <td>${escapeHtml(tenant.tenantIdNumber || "—")}</td>
           <td><strong>${escapeHtml(tenant.name)}</strong></td>
-          <td>${escapeHtml(tenant.phone)}</td>
+          <td>${escapeHtml(tenant.localPhone || tenant.phone || "—")}</td>
+          <td>${formatDate(tenant.contractSignUpDate)}</td>
           <td>${formatDate(tenant.moveInDate)}</td>
-          <td>${tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present"}</td>
-          <td>${formatMoney(tenant.deposit || 0)}</td>
+          <td>${formatDate(getTenantEndDate(tenant))}</td>
           <td>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Room deleted"}</td>
+          <td>${formatMoney(getTenantMonthlyRent(tenant, apartment))}</td>
+          <td>${formatMoney(tenant.deposit || 0)}</td>
+          <td><span class="badge ${status === "Checked in" ? "yes" : "no"}">${status}</span></td>
           <td>
             <div class="row-actions">
               <button class="small-btn danger" data-delete="tenant" data-id="${tenant.id}">Delete</button>
@@ -642,11 +730,94 @@ function renderTenants() {
 
   els.tenantsTable.innerHTML = rows + `
     <tr class="total-row">
-      <td colspan="4">Total Deposit</td>
+      <td colspan="8">Total Deposit</td>
       <td>${formatMoney(totalDeposit)}</td>
-      <td colspan="2"></td>
+      <td></td>
     </tr>
   `;
+}
+
+function renderClientSummary() {
+  const rows = getClientSummaryRows();
+  if (!rows.length) {
+    renderEmpty(els.clientSummaryTable, 21, "No client summary yet. Add a tenant above to start.");
+    return;
+  }
+
+  els.clientSummaryTable.innerHTML = rows
+    .map((row) => `
+      <tr>
+        <td>${escapeHtml(row.property)}</td>
+        <td><strong>${escapeHtml(row.tenantId)}</strong></td>
+        <td>${escapeHtml(row.unitNumber)}</td>
+        <td>${escapeHtml(row.contractSignUp)}</td>
+        <td>${escapeHtml(row.moveInStart)}</td>
+        <td>${escapeHtml(row.end)}</td>
+        <td>${escapeHtml(row.remainingDays)}</td>
+        <td>${escapeHtml(row.totalStay)}</td>
+        <td>${escapeHtml(row.totalMonths)}</td>
+        <td>${escapeHtml(row.totalYears)}</td>
+        <td><span class="badge ${row.status === "Checked in" ? "yes" : "no"}">${escapeHtml(row.status)}</span></td>
+        <td>${escapeHtml(row.monthlyRent)}</td>
+        <td>${escapeHtml(row.depositAmount)}</td>
+        <td><span class="badge deposit">${escapeHtml(row.depositStatus)}</span></td>
+        <td>${escapeHtml(row.tenantName)}</td>
+        <td>${escapeHtml(row.localContact)}</td>
+        <td>${escapeHtml(row.internationalContact)}</td>
+        <td>${escapeHtml(row.nationality)}</td>
+        <td>${escapeHtml(row.gender)}</td>
+        <td>${escapeHtml(row.occupancy)}</td>
+        <td>${escapeHtml(row.email)}</td>
+      </tr>
+    `)
+    .join("");
+}
+
+function renderReports() {
+  const month = els.targetMonth.value || getCurrentMonthValue();
+  const report = getProfitLossReport(month);
+
+  els.reportMonthLabel.textContent = formatMonth(month);
+  els.reportExpectedRent.textContent = formatMoney(report.totals.expectedRent);
+  els.reportCollectedRent.textContent = formatMoney(report.totals.collectedRent);
+  els.reportOutstandingRent.textContent = formatMoney(report.totals.outstandingRent);
+  els.reportExpenses.textContent = formatMoney(report.totals.expenses);
+  els.reportNetProfit.textContent = formatMoney(report.totals.netProfit);
+  els.reportNetProfit.classList.toggle("loss", report.totals.netProfit < 0);
+  els.reportDepositsReceived.textContent = formatMoney(report.depositTotals.received);
+  els.reportDepositsReturned.textContent = formatMoney(report.depositTotals.returned);
+  els.reportDepositsUsed.textContent = formatMoney(report.depositTotals.usedByTenant);
+
+  if (!report.propertyRows.length) {
+    renderEmpty(els.profitLossTable, 8, "No profit and loss data yet. Generate a monthly rental log first.");
+    return;
+  }
+
+  els.profitLossTable.innerHTML = report.propertyRows
+    .map((row) => `
+      <tr>
+        <td><strong>${escapeHtml(row.property)}</strong></td>
+        <td>${row.totalUnits}</td>
+        <td>${row.occupied}</td>
+        <td>${formatMoney(row.expectedRent)}</td>
+        <td>${formatMoney(row.collectedRent)}</td>
+        <td>${formatMoney(row.outstandingRent)}</td>
+        <td>${formatMoney(row.expenses)}</td>
+        <td><strong class="${row.netProfit < 0 ? "loss-text" : ""}">${formatMoney(row.netProfit)}</strong></td>
+      </tr>
+    `)
+    .join("") + `
+      <tr class="total-row">
+        <td>Total</td>
+        <td>${report.totals.totalUnits}</td>
+        <td>${report.totals.occupied}</td>
+        <td>${formatMoney(report.totals.expectedRent)}</td>
+        <td>${formatMoney(report.totals.collectedRent)}</td>
+        <td>${formatMoney(report.totals.outstandingRent)}</td>
+        <td>${formatMoney(report.totals.expenses)}</td>
+        <td>${formatMoney(report.totals.netProfit)}</td>
+      </tr>
+    `;
 }
 
 function renderLogs() {
@@ -761,6 +932,101 @@ function getPropertyByApartmentId(apartmentId) {
 function getApartmentLabel(apartment) {
   const property = getPropertyById(apartment.propertyId);
   return property ? `${property.name} — ${apartment.unitNumber}` : apartment.unitNumber;
+}
+
+function getClientSummaryRows() {
+  return state.tenants
+    .slice()
+    .sort((a, b) => {
+      const apartmentA = state.apartments.find((item) => item.id === a.roomId);
+      const apartmentB = state.apartments.find((item) => item.id === b.roomId);
+      return `${getPropertyById(apartmentA?.propertyId)?.name || ""}-${apartmentA?.unitNumber || ""}`
+        .localeCompare(`${getPropertyById(apartmentB?.propertyId)?.name || ""}-${apartmentB?.unitNumber || ""}`, undefined, { numeric: true });
+    })
+    .map((tenant) => {
+      const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+      const property = apartment ? getPropertyById(apartment.propertyId) : null;
+      const metrics = getContractMetrics(tenant);
+
+      return {
+        property: property?.name || "Property deleted",
+        tenantId: tenant.tenantIdNumber || "—",
+        unitNumber: apartment?.unitNumber || "Unit deleted",
+        contractSignUp: formatDate(tenant.contractSignUpDate),
+        moveInStart: formatDate(tenant.moveInDate),
+        end: formatDate(getTenantEndDate(tenant)),
+        remainingDays: metrics.remainingDays,
+        totalStay: metrics.totalStay,
+        totalMonths: metrics.totalMonths,
+        totalYears: metrics.totalYears,
+        status: getContractStatus(tenant),
+        monthlyRent: formatMoney(getTenantMonthlyRent(tenant, apartment)),
+        depositAmount: formatMoney(tenant.deposit || 0),
+        depositStatus: tenant.depositStatus || "Received",
+        tenantName: tenant.name,
+        localContact: tenant.localPhone || tenant.phone || "—",
+        internationalContact: tenant.internationalPhone || "—",
+        nationality: tenant.nationality || "—",
+        gender: tenant.gender || "—",
+        occupancy: tenant.occupancy || "—",
+        email: tenant.email || "—"
+      };
+    });
+}
+
+function getContractMetrics(tenant) {
+  const signUp = parseDateValue(tenant.contractSignUpDate || tenant.moveInDate);
+  const end = parseDateValue(getTenantEndDate(tenant));
+  if (!signUp || !end) {
+    return {
+      remainingDays: "—",
+      totalStay: "—",
+      totalMonths: "—",
+      totalYears: "—"
+    };
+  }
+
+  const today = startOfDay(new Date());
+  const totalDays = Math.max(0, diffDays(signUp, end));
+  const remaining = Math.max(0, diffDays(today, end));
+  const totalMonths = totalDays / 30.4375;
+  const totalYears = totalDays / 365.25;
+
+  return {
+    remainingDays: getContractStatus(tenant) === "Checked out" ? "0" : String(remaining),
+    totalStay: `${totalDays} days`,
+    totalMonths: totalMonths.toFixed(1),
+    totalYears: totalYears.toFixed(2)
+  };
+}
+
+function getContractStatus(tenant) {
+  const end = parseDateValue(getTenantEndDate(tenant));
+  if (!end) return "Checked in";
+  return end < startOfDay(new Date()) ? "Checked out" : "Checked in";
+}
+
+function getTenantEndDate(tenant) {
+  return tenant.contractEndDate || tenant.moveOutDate || "";
+}
+
+function getTenantMonthlyRent(tenant, apartment = null) {
+  return Number(tenant.monthlyRent || apartment?.monthlyRent || 0);
+}
+
+function parseDateValue(value) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function diffDays(start, end) {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.ceil((startOfDay(end) - startOfDay(start)) / millisecondsPerDay);
 }
 
 function renderLocation(location, mapQuery = location) {
@@ -913,7 +1179,8 @@ function getTenantForRoom(roomId, month) {
   return state.tenants
     .filter((tenant) => {
       const moveIn = new Date(`${tenant.moveInDate}T00:00:00`);
-      const moveOut = tenant.moveOutDate ? new Date(`${tenant.moveOutDate}T23:59:59`) : null;
+      const tenantEndDate = getTenantEndDate(tenant);
+      const moveOut = tenantEndDate ? new Date(`${tenantEndDate}T23:59:59`) : null;
       return tenant.roomId === roomId && moveIn <= monthEnd && (!moveOut || moveOut >= monthStart);
     })
     .sort((a, b) => new Date(b.moveInDate) - new Date(a.moveInDate))[0];
@@ -934,6 +1201,69 @@ function getLogTotals(logs) {
     rentDue,
     amountPaid,
     balance: rentDue - amountPaid
+  };
+}
+
+function getProfitLossReport(month) {
+  const logs = state.logs.filter((log) => log.targetMonth === month);
+  const expenses = state.expenses.filter((expense) => expense.date && expense.date.slice(0, 7) === month);
+  const depositTotals = state.tenants.reduce((totals, tenant) => {
+    const amount = Number(tenant.deposit || 0);
+    const status = String(tenant.depositStatus || "Received").toLowerCase();
+    if (status === "returned") totals.returned += amount;
+    else if (status === "used by tenant") totals.usedByTenant += amount;
+    else totals.received += amount;
+    return totals;
+  }, {
+    received: 0,
+    returned: 0,
+    usedByTenant: 0
+  });
+
+  const propertyRows = state.properties.map((property) => {
+    const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
+    const apartmentIds = apartments.map((apartment) => apartment.id);
+    const propertyLogs = logs.filter((log) => apartmentIds.includes(log.roomId));
+    const propertyExpenses = expenses.filter((expense) => apartmentIds.includes(expense.roomId));
+    const expectedRent = propertyLogs.reduce((sum, log) => sum + Number(log.rentDue || 0), 0);
+    const collectedRent = propertyLogs.reduce((sum, log) => sum + Number(log.amountPaid || 0), 0);
+    const expenseTotal = propertyExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+
+    return {
+      property: property.name,
+      totalUnits: apartments.length,
+      occupied: apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length,
+      expectedRent,
+      collectedRent,
+      outstandingRent: expectedRent - collectedRent,
+      expenses: expenseTotal,
+      netProfit: collectedRent - expenseTotal
+    };
+  });
+
+  const totals = propertyRows.reduce((sum, row) => ({
+    totalUnits: sum.totalUnits + row.totalUnits,
+    occupied: sum.occupied + row.occupied,
+    expectedRent: sum.expectedRent + row.expectedRent,
+    collectedRent: sum.collectedRent + row.collectedRent,
+    outstandingRent: sum.outstandingRent + row.outstandingRent,
+    expenses: sum.expenses + row.expenses,
+    netProfit: sum.netProfit + row.netProfit
+  }), {
+    totalUnits: 0,
+    occupied: 0,
+    expectedRent: 0,
+    collectedRent: 0,
+    outstandingRent: 0,
+    expenses: 0,
+    netProfit: 0
+  });
+
+  return {
+    month,
+    depositTotals,
+    propertyRows,
+    totals
   };
 }
 
@@ -1177,8 +1507,65 @@ function getReportSections() {
   const totalDeposits = state.tenants.reduce((sum, tenant) => sum + Number(tenant.deposit || 0), 0);
   const logTotals = getLogTotals(allLogs);
   const totalExpenses = state.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const profitLossReport = getProfitLossReport(month);
 
   return [
+    {
+      title: "Client Data Summary",
+      headers: ["Property", "Tenant ID", "Unit Number", "Contract Sign Up", "Start of Moving In", "End", "Remaining Days", "Total Stay", "Total Month", "Total Years", "Status", "Monthly Rental Amount", "Deposit Amount", "Deposit Status", "Tenant Name", "Local Contact", "International Contact", "Nationality", "Gender", "Occupancy", "Email"],
+      rows: getClientSummaryRows().map((row) => [
+        row.property,
+        row.tenantId,
+        row.unitNumber,
+        row.contractSignUp,
+        row.moveInStart,
+        row.end,
+        row.remainingDays,
+        row.totalStay,
+        row.totalMonths,
+        row.totalYears,
+        row.status,
+        row.monthlyRent,
+        row.depositAmount,
+        row.depositStatus,
+        row.tenantName,
+        row.localContact,
+        row.internationalContact,
+        row.nationality,
+        row.gender,
+        row.occupancy,
+        row.email
+      ])
+    },
+    {
+      title: `Profit and Loss Summary (${formatMonth(month)})`,
+      headers: ["Item", "Amount"],
+      rows: [
+        ["Expected Rent", formatMoney(profitLossReport.totals.expectedRent)],
+        ["Rent Collected", formatMoney(profitLossReport.totals.collectedRent)],
+        ["Outstanding Rent", formatMoney(profitLossReport.totals.outstandingRent)],
+        ["Total Expenses", formatMoney(profitLossReport.totals.expenses)],
+        ["Net Profit / Loss", formatMoney(profitLossReport.totals.netProfit)],
+        ["Deposits Received", formatMoney(profitLossReport.depositTotals.received)],
+        ["Deposits Returned", formatMoney(profitLossReport.depositTotals.returned)],
+        ["Deposits Used by Tenant", formatMoney(profitLossReport.depositTotals.usedByTenant)]
+      ]
+    },
+    {
+      title: `Profit and Loss by Property (${formatMonth(month)})`,
+      headers: ["Property", "Total Units", "Occupied", "Expected Rent", "Collected Rent", "Outstanding", "Expenses", "Net Profit / Loss"],
+      rows: profitLossReport.propertyRows.map((row) => [
+        row.property,
+        row.totalUnits,
+        row.occupied,
+        formatMoney(row.expectedRent),
+        formatMoney(row.collectedRent),
+        formatMoney(row.outstandingRent),
+        formatMoney(row.expenses),
+        formatMoney(row.netProfit)
+      ]),
+      totalRows: [["Total", profitLossReport.totals.totalUnits, profitLossReport.totals.occupied, formatMoney(profitLossReport.totals.expectedRent), formatMoney(profitLossReport.totals.collectedRent), formatMoney(profitLossReport.totals.outstandingRent), formatMoney(profitLossReport.totals.expenses), formatMoney(profitLossReport.totals.netProfit)]]
+    },
     {
       title: "Property Profile",
       headers: ["Property", "Location", "Total Units", "Occupied Units"],
@@ -1212,19 +1599,29 @@ function getReportSections() {
     },
     {
       title: "Tenant Profile",
-      headers: ["Name", "Phone", "Move-in Date", "Move-out Date", "Deposit", "Current Room"],
+      headers: ["Tenant ID", "Name", "Local Contact", "International Contact", "Email", "Contract Sign Up", "Move-in Start", "Contract End", "Monthly Rent", "Deposit", "Deposit Status", "Current Room", "Nationality", "Gender", "Occupancy", "Status"],
       rows: state.tenants.map((tenant) => {
         const apartment = state.apartments.find((item) => item.id === tenant.roomId);
         return [
+          tenant.tenantIdNumber || "—",
           tenant.name,
-          tenant.phone,
+          tenant.localPhone || tenant.phone || "—",
+          tenant.internationalPhone || "—",
+          tenant.email || "—",
+          formatDate(tenant.contractSignUpDate),
           formatDate(tenant.moveInDate),
-          tenant.moveOutDate ? formatDate(tenant.moveOutDate) : "Present",
+          formatDate(getTenantEndDate(tenant)),
+          formatMoney(getTenantMonthlyRent(tenant, apartment)),
           formatMoney(tenant.deposit || 0),
-          apartment ? getApartmentLabel(apartment) : "Room deleted"
+          tenant.depositStatus || "Received",
+          apartment ? getApartmentLabel(apartment) : "Room deleted",
+          tenant.nationality || "—",
+          tenant.gender || "—",
+          tenant.occupancy || "—",
+          getContractStatus(tenant)
         ];
       }),
-      totalRows: [["Total Deposit", "", "", "", formatMoney(totalDeposits), ""]]
+      totalRows: [["Total Deposit", "", "", "", "", "", "", "", "", formatMoney(totalDeposits), "", "", "", "", "", ""]]
     },
     {
       title: `Monthly Rental Record (${formatMonth(month)} selected)`,
@@ -1324,8 +1721,61 @@ function ensureStateShape() {
     const fallbackPropertyId = state.properties[0].id;
     state.apartments.forEach((apartment) => {
       apartment.propertyId ||= fallbackPropertyId;
+      apartment.monthlyRent = Number(apartment.monthlyRent || 0);
+      apartment.location ||= "";
+      apartment.mapQuery ||= apartment.location;
     });
   }
+
+  state.tenants.forEach((tenant, index) => {
+    tenant.tenantIdNumber ||= `TEN-${String(index + 1).padStart(4, "0")}`;
+    tenant.localPhone ||= tenant.phone || "";
+    tenant.phone ||= tenant.localPhone;
+    tenant.internationalPhone ||= "";
+    tenant.email ||= "";
+    tenant.contractSignUpDate ||= tenant.moveInDate || getTodayValue();
+    tenant.contractEndDate ||= tenant.moveOutDate || "";
+    tenant.moveOutDate ||= tenant.contractEndDate;
+    tenant.depositStatus ||= "Received";
+    tenant.nationality ||= "";
+    tenant.gender ||= "";
+    tenant.occupancy ||= "Single";
+    const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+    tenant.monthlyRent = Number(tenant.monthlyRent || apartment?.monthlyRent || 0);
+    if (apartment && tenant.monthlyRent) {
+      apartment.monthlyRent = tenant.monthlyRent;
+    }
+    tenant.deposit = Number(tenant.deposit || 0);
+  });
+
+  const maniConfig = [
+    { propertyName: "Mani 6", prefix: "SF", count: 11 },
+    { propertyName: "Mani 7", prefix: "M7", count: 11 },
+    { propertyName: "Mani 8", prefix: "M8", count: 34 }
+  ];
+
+  maniConfig.forEach((config) => {
+    let property = state.properties.find((item) => item.name === config.propertyName);
+    if (!property) {
+      property = { id: crypto.randomUUID(), name: config.propertyName, location: "" };
+      state.properties.push(property);
+    }
+
+    for (let index = 1; index <= config.count; index += 1) {
+      const unitNumber = `${config.prefix}-${String(index).padStart(2, "0")}`;
+      const existing = state.apartments.find((apartment) => apartment.propertyId === property.id && apartment.unitNumber === unitNumber);
+      if (!existing) {
+        state.apartments.push({
+          id: crypto.randomUUID(),
+          propertyId: property.id,
+          unitNumber,
+          monthlyRent: 0,
+          location: property.location || "",
+          mapQuery: property.location || ""
+        });
+      }
+    }
+  });
 }
 
 function persistAndRender() {

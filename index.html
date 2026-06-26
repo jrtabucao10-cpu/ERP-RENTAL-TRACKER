@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apartment Rental ERP Demo</title>
+  <title>Mani Property Rental ERP</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="is-locked">
@@ -27,8 +27,8 @@
       <div class="brand">
         <span class="brand-mark">ERP</span>
         <div>
-          <strong>Apartment Rental ERP</strong>
-          <small>Apartment rental operations demo</small>
+          <strong>Mani Property Rental ERP</strong>
+          <small>Property, unit, tenant, and contract summary</small>
         </div>
       </div>
       <div class="top-actions">
@@ -42,8 +42,8 @@
     <div class="hero-grid">
       <div>
         <p class="eyebrow">Property Operations</p>
-        <h1>Apartment ERP for rent, tenants, and monthly payments.</h1>
-        <p class="hero-copy">A simple client-ready system that tracks unit profiles, tenant assignments, and monthly rent collection in one clean dashboard.</p>
+        <h1>Client summary for Mani 6, Mani 7, and Mani 8.</h1>
+        <p class="hero-copy">Track every unit, tenant ID, contract date, stay duration, deposit status, contact detail, and monthly rental amount in one clean dashboard.</p>
       </div>
       <div class="hero-card">
         <p>Current month</p>
@@ -174,30 +174,79 @@
         <div>
           <p class="eyebrow">C. Tenants Tracker</p>
           <h2>Tenant Profile</h2>
-          <p>Name, phone number, deposit, move-in date, move-out date, and active apartment room.</p>
+          <p>Tenant ID, contacts, contract dates, deposit status, personal details, and assigned unit.</p>
         </div>
       </div>
 
       <form id="tenant-form" class="form-grid tenants-form">
         <label>
+          Tenant ID
+          <input id="tenant-id-number" type="text" placeholder="e.g. T-1001" required>
+        </label>
+        <label>
           Tenant name
           <input id="tenant-name" type="text" placeholder="e.g. Maria Santos" required>
         </label>
         <label>
-          Phone number
+          Local contact number
           <input id="tenant-phone" type="tel" placeholder="+971 50 000 0000" required>
         </label>
         <label>
-          First moved in
+          International contact
+          <input id="tenant-international-phone" type="tel" placeholder="+63 900 000 0000">
+        </label>
+        <label>
+          Email
+          <input id="tenant-email" type="email" placeholder="tenant@email.com">
+        </label>
+        <label>
+          Contract sign up
+          <input id="contract-signup-date" type="date" required>
+        </label>
+        <label>
+          Start of moving in
           <input id="move-in-date" type="date" required>
         </label>
         <label>
-          Move-out date
-          <input id="move-out-date" type="date">
+          Contract end
+          <input id="move-out-date" type="date" required>
+        </label>
+        <label>
+          Monthly rental amount
+          <input id="tenant-monthly-rent" type="number" min="0" step="1" placeholder="1500" required>
         </label>
         <label>
           Deposit amount
           <input id="tenant-deposit" type="number" min="0" step="1" placeholder="2000" required>
+        </label>
+        <label>
+          Deposit status
+          <select id="deposit-status" required>
+            <option value="Received">Received</option>
+            <option value="Returned">Returned</option>
+            <option value="Used by tenant">Used by tenant</option>
+          </select>
+        </label>
+        <label>
+          Nationality
+          <input id="tenant-nationality" type="text" placeholder="e.g. Filipino">
+        </label>
+        <label>
+          Gender
+          <select id="tenant-gender">
+            <option value="">Select...</option>
+            <option>Female</option>
+            <option>Male</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label>
+          Occupancy
+          <select id="tenant-occupancy" required>
+            <option>Single</option>
+            <option>Couple</option>
+            <option>Family</option>
+          </select>
         </label>
         <label>
           Current room
@@ -210,12 +259,16 @@
         <table>
           <thead>
             <tr>
+              <th>Tenant ID</th>
               <th>Name</th>
-              <th>Phone</th>
-              <th>Move-in Date</th>
-              <th>Move-out Date</th>
-              <th>Deposit</th>
+              <th>Local Contact</th>
+              <th>Contract Sign Up</th>
+              <th>Move-in Start</th>
+              <th>Contract End</th>
               <th>Current Room</th>
+              <th>Monthly Rent</th>
+              <th>Deposit</th>
+              <th>Status</th>
               <th></th>
             </tr>
           </thead>
@@ -225,9 +278,117 @@
     </section>
 
     <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">D. Client Data Summary</p>
+          <h2>Full Client Summary</h2>
+          <p>Complete tenant view with contract duration, remaining days, stay totals, rent, deposit, contacts, and occupancy details.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap summary-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Tenant ID</th>
+              <th>Unit Number</th>
+              <th>Contract Sign Up</th>
+              <th>Start of Moving In</th>
+              <th>End</th>
+              <th>Remaining Days</th>
+              <th>Total Stay</th>
+              <th>Total Month</th>
+              <th>Total Years</th>
+              <th>Status</th>
+              <th>Monthly Rental Amount</th>
+              <th>Deposit Amount</th>
+              <th>Deposit Status</th>
+              <th>Tenant Name</th>
+              <th>Local Contact</th>
+              <th>International Contact</th>
+              <th>Nationality</th>
+              <th>Gender</th>
+              <th>Occupancy</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="client-summary-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">E. Summary / Reports</p>
+          <h2>Client Data, Profit and Loss</h2>
+          <p>Monthly report using rent collection, outstanding balance, expenses, deposits, and property-level profit or loss.</p>
+        </div>
+      </div>
+
+      <section class="report-cards" aria-label="Profit and loss summary">
+        <article class="report-card">
+          <span>Report month</span>
+          <strong id="report-month-label">-</strong>
+        </article>
+        <article class="report-card">
+          <span>Expected rent</span>
+          <strong id="report-expected-rent">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Rent collected</span>
+          <strong id="report-collected-rent">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Outstanding rent</span>
+          <strong id="report-outstanding-rent">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Total expenses</span>
+          <strong id="report-expenses">AED 0</strong>
+        </article>
+        <article class="report-card result-card">
+          <span>Net profit / loss</span>
+          <strong id="report-net-profit">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Deposits received</span>
+          <strong id="report-deposits-received">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Deposits returned</span>
+          <strong id="report-deposits-returned">AED 0</strong>
+        </article>
+        <article class="report-card">
+          <span>Deposits used by tenant</span>
+          <strong id="report-deposits-used">AED 0</strong>
+        </article>
+      </section>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Total Units</th>
+              <th>Occupied</th>
+              <th>Expected Rent</th>
+              <th>Collected Rent</th>
+              <th>Outstanding</th>
+              <th>Expenses</th>
+              <th>Net Profit / Loss</th>
+            </tr>
+          </thead>
+          <tbody id="profit-loss-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
       <div class="panel-head rental-head">
         <div>
-          <p class="eyebrow">D. Monthly Rental Record</p>
+          <p class="eyebrow">F. Monthly Rental Record</p>
           <h2>Monthly Rental Record</h2>
           <p>Generate one row per apartment room for the selected month. Payment status updates automatically.</p>
         </div>
@@ -263,7 +424,7 @@
     <section class="panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">E. Expense Tracker</p>
+          <p class="eyebrow">G. Expense Tracker</p>
           <h2>Apartment Expenses</h2>
           <p>Record maintenance, repair, cleaning, or other costs and assign each expense to an apartment.</p>
         </div>
