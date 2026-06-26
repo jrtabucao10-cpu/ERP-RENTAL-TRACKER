@@ -22,7 +22,29 @@
     </form>
   </section>
 
-  <header class="hero">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="sidebar-brand" href="#dashboard">
+      <span class="sidebar-logo">N</span>
+      <span>
+        <strong>NestLedger</strong>
+        <small>Rental manager</small>
+      </span>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#dashboard"><span class="nav-icon">▣</span>Dashboard</a>
+      <a class="nav-item" href="#apartments"><span class="nav-icon">⌂</span>Apartments</a>
+      <a class="nav-item" href="#tenants"><span class="nav-icon">♟</span>Tenants &amp; visitors</a>
+      <a class="nav-item" href="#utilities"><span class="nav-icon">↯</span>Utilities</a>
+      <a class="nav-item" href="#payments"><span class="nav-icon">$</span>Payments</a>
+      <a class="nav-item" href="#expenses"><span class="nav-icon">↗</span>Expenses</a>
+      <a class="nav-item" href="#reports"><span class="nav-icon">▤</span>Reports</a>
+      <a class="nav-item" href="#dashboard"><span class="nav-icon">■</span>Users &amp; access</a>
+    </nav>
+  </aside>
+
+  <div class="app-content">
+  <header id="dashboard" class="hero">
     <nav class="topbar">
       <div class="brand">
         <span class="brand-mark">ERP</span>
@@ -77,7 +99,7 @@
       </article>
     </section>
 
-    <section class="panel">
+    <section id="access" class="panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">A. Property Tracker</p>
@@ -114,7 +136,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="apartments" class="panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">B. Apartments / Units Tracker</p>
@@ -169,7 +191,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="tenants" class="panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">C. Tenants Tracker</p>
@@ -277,7 +299,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="reports" class="panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">D. Client Data Summary</p>
@@ -385,7 +407,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="payments" class="panel">
       <div class="panel-head rental-head">
         <div>
           <p class="eyebrow">F. Monthly Rental Record</p>
@@ -421,7 +443,8 @@
       </div>
     </section>
 
-    <section class="panel">
+    <span id="utilities" class="anchor-target" aria-hidden="true"></span>
+    <section id="expenses" class="panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">G. Expense Tracker</p>
@@ -466,6 +489,7 @@
       </div>
     </section>
   </main>
+  </div>
 
   <div id="map-modal" class="map-modal" hidden aria-hidden="true">
     <div class="map-modal-card" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
