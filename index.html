@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=client-summary-filters">
+  <link rel="stylesheet" href="styles.css?v=tenant-remaining-sort">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -32,15 +32,15 @@
     </a>
 
     <nav class="sidebar-nav">
-      <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">?</span>Dashboard</a>
-      <a class="nav-item" href="#properties" data-view-link="properties"><span class="nav-icon">¦</span>Property</a>
-      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">?</span>Tenant</a>
-      <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">?</span>Utilities</a>
+      <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">D</span>Dashboard</a>
+      <a class="nav-item" href="#properties" data-view-link="properties"><span class="nav-icon">P</span>Property</a>
+      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">T</span>Tenant</a>
+      <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">U</span>Utilities</a>
       <a class="nav-item" href="#payments" data-view-link="payments"><span class="nav-icon">$</span>Payments</a>
-      <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">?</span>Expenses</a>
-      <a class="nav-item" href="#client-summary" data-view-link="client-summary"><span class="nav-icon">?</span>Client Summary</a>
-      <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">?</span>Reports</a>
-      <a class="nav-item" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">¦</span>Users &amp; access</a>
+      <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">E</span>Expenses</a>
+      <a class="nav-item" href="#client-summary" data-view-link="client-summary"><span class="nav-icon">C</span>Client Summary</a>
+      <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">R</span>Reports</a>
+      <a class="nav-item" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">A</span>Users &amp; access</a>
     </nav>
   </aside>
 
@@ -197,6 +197,48 @@
           <p>Click a tenant name to view the full details.</p>
         </div>
         <button id="open-tenant-form" class="secondary-action" type="button">Add tenant</button>
+      </div>
+
+      <div class="filter-bar tenant-filter-bar">
+        <label>
+          Search
+          <input id="tenant-search" type="search" placeholder="Name, ID, room">
+        </label>
+        <label>
+          Property
+          <select id="tenant-property-filter"></select>
+        </label>
+        <label>
+          Status
+          <select id="tenant-status-filter">
+            <option value="all">All status</option>
+            <option value="Checked in">Checked in</option>
+            <option value="Checked out">Checked out</option>
+          </select>
+        </label>
+        <label>
+          Date field
+          <select id="tenant-date-field-filter">
+            <option value="contractSignUpDate">Contract sign</option>
+            <option value="moveInDate">Start date</option>
+            <option value="endDate">End date</option>
+          </select>
+        </label>
+        <label>
+          From
+          <input id="tenant-date-from-filter" type="date">
+        </label>
+        <label>
+          To
+          <input id="tenant-date-to-filter" type="date">
+        </label>
+        <label>
+          Remaining days
+          <select id="tenant-remaining-sort-filter">
+            <option value="desc">Highest to lowest</option>
+            <option value="asc">Lowest to highest</option>
+          </select>
+        </label>
       </div>
 
       <div class="table-wrap fit-table-wrap">
@@ -606,7 +648,7 @@
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=client-summary-filters"></script>
+  <script src="app.js?v=tenant-remaining-sort"></script>
 </body>
 </html>
 

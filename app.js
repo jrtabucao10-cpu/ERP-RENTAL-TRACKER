@@ -313,6 +313,13 @@ const els = {
   propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
+  tenantSearch: document.getElementById("tenant-search"),
+  tenantPropertyFilter: document.getElementById("tenant-property-filter"),
+  tenantStatusFilter: document.getElementById("tenant-status-filter"),
+  tenantDateFieldFilter: document.getElementById("tenant-date-field-filter"),
+  tenantDateFromFilter: document.getElementById("tenant-date-from-filter"),
+  tenantDateToFilter: document.getElementById("tenant-date-to-filter"),
+  tenantRemainingSortFilter: document.getElementById("tenant-remaining-sort-filter"),
   clientSummaryTable: document.getElementById("client-summary-table"),
   clientSummarySearch: document.getElementById("client-summary-search"),
   clientSummaryPropertyFilter: document.getElementById("client-summary-property-filter"),
@@ -578,6 +585,19 @@ function bindEvents() {
     control.addEventListener("change", () => renderClientSummary());
   });
 
+  [
+    els.tenantSearch,
+    els.tenantPropertyFilter,
+    els.tenantStatusFilter,
+    els.tenantDateFieldFilter,
+    els.tenantDateFromFilter,
+    els.tenantDateToFilter,
+    els.tenantRemainingSortFilter
+  ].forEach((control) => {
+    control.addEventListener("input", () => renderTenants());
+    control.addEventListener("change", () => renderTenants());
+  });
+
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
   });
@@ -691,6 +711,7 @@ function bindEvents() {
 function render() {
   ensureStateShape();
   renderPropertySelect();
+  renderTenantFilters();
   renderClientSummaryFilters();
   renderProperties();
   renderRoomSelect();
@@ -710,6 +731,14 @@ function renderClientSummaryFilters() {
     .concat(state.properties.map((property) => `<option value="${property.id}">${escapeHtml(property.name)}</option>`));
   els.clientSummaryPropertyFilter.innerHTML = options.join("");
   els.clientSummaryPropertyFilter.value = state.properties.some((property) => property.id === currentValue) ? currentValue : "all";
+}
+
+function renderTenantFilters() {
+  const currentValue = els.tenantPropertyFilter.value || "all";
+  const options = [`<option value="all">All properties</option>`]
+    .concat(state.properties.map((property) => `<option value="${property.id}">${escapeHtml(property.name)}</option>`));
+  els.tenantPropertyFilter.innerHTML = options.join("");
+  els.tenantPropertyFilter.value = state.properties.some((property) => property.id === currentValue) ? currentValue : "all";
 }
 
 function getInitialView() {
@@ -1198,12 +1227,51 @@ function renderTenants() {
 }
 
 function renderTenants() {
-  if (!state.tenants.length) {
+  const searchTerm = els.tenantSearch.value.trim().toLowerCase();
+  const propertyFilter = els.tenantPropertyFilter.value || "all";
+  const statusFilter = els.tenantStatusFilter.value || "all";
+  const dateField = els.tenantDateFieldFilter.value || "contractSignUpDate";
+  const dateFrom = parseDateValue(els.tenantDateFromFilter.value);
+  const dateTo = parseDateValue(els.tenantDateToFilter.value);
+  const remainingSort = els.tenantRemainingSortFilter.value || "desc";
+  const filteredTenants = state.tenants.filter((tenant) => {
+    const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+    const property = apartment ? getPropertyById(apartment.propertyId) : null;
+    const status = getContractStatus(tenant);
+    const metrics = getContractMetrics(tenant);
+    const dateValue = dateField === "endDate" ? getTenantEndDate(tenant) : tenant[dateField];
+    const activeDate = parseDateValue(dateValue);
+    const remainingDays = Number(metrics.remainingDays);
+    const searchable = [
+      tenant.tenantIdNumber,
+      tenant.name,
+      apartment ? getApartmentLabel(apartment) : "",
+      property?.name,
+      tenant.localPhone || tenant.phone,
+      tenant.internationalPhone,
+      tenant.email
+    ].join(" ").toLowerCase();
+
+    if (propertyFilter !== "all" && apartment?.propertyId !== propertyFilter) return false;
+    if (statusFilter !== "all" && status !== statusFilter) return false;
+    if (dateFrom && (!activeDate || activeDate < dateFrom)) return false;
+    if (dateTo && (!activeDate || activeDate > dateTo)) return false;
+    if (searchTerm && !searchable.includes(searchTerm)) return false;
+    return true;
+  }).sort((a, b) => {
+    const remainingA = Number(getContractMetrics(a).remainingDays);
+    const remainingB = Number(getContractMetrics(b).remainingDays);
+    const safeA = Number.isNaN(remainingA) ? -1 : remainingA;
+    const safeB = Number.isNaN(remainingB) ? -1 : remainingB;
+    return remainingSort === "asc" ? safeA - safeB : safeB - safeA;
+  });
+
+  if (!filteredTenants.length) {
     renderEmpty(els.tenantsTable, 9);
     return;
   }
 
-  els.tenantsTable.innerHTML = state.tenants
+  els.tenantsTable.innerHTML = filteredTenants
     .map((tenant) => {
       const apartment = state.apartments.find((item) => item.id === tenant.roomId);
       const status = getContractStatus(tenant);
