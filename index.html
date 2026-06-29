@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=expense-form-popup">
+  <link rel="stylesheet" href="styles.css?v=all-pages">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -32,15 +32,15 @@
     </a>
 
     <nav class="sidebar-nav">
-      <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">▣</span>Dashboard</a>
-      <a class="nav-item" href="#properties" data-view-link="properties"><span class="nav-icon">⌂</span>Property</a>
-      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">♟</span>Tenant</a>
-      <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">↯</span>Utilities</a>
+      <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">?</span>Dashboard</a>
+      <a class="nav-item" href="#properties" data-view-link="properties"><span class="nav-icon">�</span>Property</a>
+      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">?</span>Tenant</a>
+      <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">?</span>Utilities</a>
       <a class="nav-item" href="#payments" data-view-link="payments"><span class="nav-icon">$</span>Payments</a>
-      <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">↗</span>Expenses</a>
-      <a class="nav-item" href="#client-summary" data-view-link="client-summary"><span class="nav-icon">▥</span>Client Summary</a>
-      <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">▤</span>Reports</a>
-      <a class="nav-item" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">■</span>Users &amp; access</a>
+      <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">?</span>Expenses</a>
+      <a class="nav-item" href="#client-summary" data-view-link="client-summary"><span class="nav-icon">?</span>Client Summary</a>
+      <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">?</span>Reports</a>
+      <a class="nav-item" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">�</span>Users &amp; access</a>
     </nav>
   </aside>
 
@@ -162,7 +162,7 @@
             <div class="location-input-row">
               <div class="location-search-box">
                 <input id="apartment-location" type="text" placeholder="e.g. Dubai Marina or Google Maps link" autocomplete="off">
-                <button id="search-location" type="button" class="location-search-icon" aria-label="Search location in Google Maps">🔍</button>
+                <button id="search-location" type="button" class="location-search-icon" aria-label="Search location in Google Maps">??</button>
               </div>
             </div>
             <div id="location-suggestions" class="location-suggestions" hidden></div>
@@ -199,15 +199,32 @@
         <button id="open-tenant-form" class="secondary-action" type="button">Add tenant</button>
       </div>
 
-      <div id="tenant-form-modal" class="form-modal" hidden aria-hidden="true">
-        <div class="form-modal-card" role="dialog" aria-modal="true" aria-labelledby="tenant-form-title">
-          <div class="modal-head">
-            <div>
-              <p class="eyebrow">Add Tenant</p>
-              <h2 id="tenant-form-title">Tenant Details</h2>
-            </div>
-            <button id="close-tenant-form" class="modal-close" type="button" aria-label="Close add tenant form">x</button>
-          </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tenant ID</th>
+              <th>Name</th>
+              <th>Current Room</th>
+              <th>Monthly Rent</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tenants-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="add-tenant" class="panel view" data-view="add-tenant">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Add Tenant</p>
+          <h2>Tenant Details</h2>
+          <p>Fill the required details, then save the tenant record.</p>
+        </div>
+        <button id="close-tenant-form" class="secondary-action" type="button">Back to tenants</button>
+      </div>
+
       <form id="tenant-form" class="form-grid tenants-form">
         <label>
           Tenant ID
@@ -282,27 +299,9 @@
           Current room
           <select id="tenant-room" required></select>
         </label>
-        <button type="submit">Add tenant</button>
+        <button type="submit">Save tenant</button>
       </form>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Tenant ID</th>
-              <th>Name</th>
-              <th>Current Room</th>
-              <th>Monthly Rent</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="tenants-table"></tbody>
-        </table>
-      </div>
     </section>
-
     <section id="client-summary" class="panel view wide-view" data-view="client-summary">
       <div class="panel-head">
         <div>
@@ -466,37 +465,6 @@
         <button id="open-expense-form" class="secondary-action" type="button">Add expense</button>
       </div>
 
-      <div id="expense-form-modal" class="form-modal" hidden aria-hidden="true">
-        <div class="form-modal-card" role="dialog" aria-modal="true" aria-labelledby="expense-form-title">
-          <div class="modal-head">
-            <div>
-              <p class="eyebrow">Add Expense</p>
-              <h2 id="expense-form-title">Expense Details</h2>
-            </div>
-            <button id="close-expense-form" class="modal-close" type="button" aria-label="Close add expense form">x</button>
-          </div>
-          <form id="expense-form" class="form-grid expense-form">
-            <label>
-              Apartment
-              <select id="expense-room" required></select>
-            </label>
-            <label>
-              Expense name
-              <input id="expense-name" type="text" placeholder="e.g. AC repair" required>
-            </label>
-            <label>
-              Amount
-              <input id="expense-amount" type="number" min="0" step="1" placeholder="250" required>
-            </label>
-            <label>
-              Date
-              <input id="expense-date" type="date" required>
-            </label>
-            <button type="submit">Add expense</button>
-          </form>
-        </div>
-      </div>
-
       <div class="table-wrap fit-table-wrap">
         <table class="fit-table expenses-fit-table">
           <thead>
@@ -511,6 +479,70 @@
         </table>
       </div>
     </section>
+
+    <section id="add-expense" class="panel view" data-view="add-expense">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Add Expense</p>
+          <h2>Expense Details</h2>
+          <p>Fill the required details, then save the expense record.</p>
+        </div>
+        <button id="close-expense-form" class="secondary-action" type="button">Back to expenses</button>
+      </div>
+
+      <form id="expense-form" class="form-grid expense-form">
+        <label>
+          Apartment
+          <select id="expense-room" required></select>
+        </label>
+        <label>
+          Expense name
+          <input id="expense-name" type="text" placeholder="e.g. AC repair" required>
+        </label>
+        <label>
+          Amount
+          <input id="expense-amount" type="number" min="0" step="1" placeholder="250" required>
+        </label>
+        <label>
+          Date
+          <input id="expense-date" type="date" required>
+        </label>
+        <button type="submit">Save expense</button>
+      </form>
+    </section>
+
+    <section id="tenant-details-page" class="panel view" data-view="tenant-details">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Tenant Details</p>
+          <h2 id="tenant-page-title">Tenant Profile</h2>
+        </div>
+        <button id="back-tenant-details" class="secondary-action" type="button">Back</button>
+      </div>
+      <div id="tenant-page-body" class="details-grid"></div>
+    </section>
+
+    <section id="property-details-page" class="panel view wide-view" data-view="property-details">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Property Details</p>
+          <h2 id="property-page-title">Occupied Units</h2>
+        </div>
+        <button id="back-property-details" class="secondary-action" type="button">Back to property</button>
+      </div>
+      <div id="property-page-body"></div>
+    </section>
+
+    <section id="expense-details-page" class="panel view" data-view="expense-details">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Expense Details</p>
+          <h2 id="expense-page-title">Expense Record</h2>
+        </div>
+        <button id="back-expense-details" class="secondary-action" type="button">Back to expenses</button>
+      </div>
+      <div id="expense-page-body" class="details-grid"></div>
+    </section>
   </main>
   </div>
 
@@ -521,7 +553,7 @@
           <strong id="map-modal-title">Locate address</strong>
           <p id="map-modal-location">Search location</p>
         </div>
-        <button id="close-map-preview" type="button" aria-label="Close map popup">×</button>
+        <button id="close-map-preview" type="button" aria-label="Close map popup">�</button>
       </div>
       <iframe id="location-map-frame" class="location-map-frame" title="Google Maps location popup" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <div class="map-modal-actions">
@@ -531,51 +563,12 @@
     </div>
   </div>
 
-  <div id="tenant-details-modal" class="form-modal" hidden aria-hidden="true">
-    <div class="form-modal-card details-card" role="dialog" aria-modal="true" aria-labelledby="tenant-details-title">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">Tenant Details</p>
-          <h2 id="tenant-details-title">Tenant Profile</h2>
-        </div>
-        <button id="close-tenant-details" class="modal-close" type="button" aria-label="Close tenant details">x</button>
-      </div>
-      <div id="tenant-details-body" class="details-grid"></div>
-    </div>
-  </div>
-
-  <div id="property-details-modal" class="form-modal" hidden aria-hidden="true">
-    <div class="form-modal-card property-details-card" role="dialog" aria-modal="true" aria-labelledby="property-details-title">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">Property Details</p>
-          <h2 id="property-details-title">Occupied Units</h2>
-        </div>
-        <button id="close-property-details" class="modal-close" type="button" aria-label="Close property details">x</button>
-      </div>
-      <div id="property-details-body"></div>
-    </div>
-  </div>
-
-  <div id="expense-details-modal" class="form-modal" hidden aria-hidden="true">
-    <div class="form-modal-card details-card" role="dialog" aria-modal="true" aria-labelledby="expense-details-title">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">Expense Details</p>
-          <h2 id="expense-details-title">Expense Record</h2>
-        </div>
-        <button id="close-expense-details" class="modal-close" type="button" aria-label="Close expense details">x</button>
-      </div>
-      <div id="expense-details-body" class="details-grid"></div>
-    </div>
-  </div>
-
   <template id="empty-row-template">
     <tr>
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=expense-form-popup"></script>
+  <script src="app.js?v=all-pages"></script>
 </body>
 </html>
 

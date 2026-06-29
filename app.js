@@ -280,6 +280,7 @@ function createDemoTenant(tenantIdNumber, name, apartment, contractSignUpDate, m
 
 let state = loadState();
 let selectedMapQuery = "";
+let detailReturnView = "tenants";
 
 const els = {
   currentMonthLabel: document.getElementById("current-month-label"),
@@ -296,20 +297,16 @@ const els = {
   apartmentForm: document.getElementById("apartment-form"),
   tenantForm: document.getElementById("tenant-form"),
   openTenantForm: document.getElementById("open-tenant-form"),
-  tenantFormModal: document.getElementById("tenant-form-modal"),
   closeTenantForm: document.getElementById("close-tenant-form"),
-  tenantDetailsModal: document.getElementById("tenant-details-modal"),
-  tenantDetailsBody: document.getElementById("tenant-details-body"),
-  closeTenantDetails: document.getElementById("close-tenant-details"),
-  propertyDetailsModal: document.getElementById("property-details-modal"),
-  propertyDetailsTitle: document.getElementById("property-details-title"),
-  propertyDetailsBody: document.getElementById("property-details-body"),
-  closePropertyDetails: document.getElementById("close-property-details"),
-  expenseDetailsModal: document.getElementById("expense-details-modal"),
-  expenseDetailsBody: document.getElementById("expense-details-body"),
-  closeExpenseDetails: document.getElementById("close-expense-details"),
+  tenantDetailsTitle: document.getElementById("tenant-page-title"),
+  tenantDetailsBody: document.getElementById("tenant-page-body"),
+  backTenantDetails: document.getElementById("back-tenant-details"),
+  propertyDetailsTitle: document.getElementById("property-page-title"),
+  propertyDetailsBody: document.getElementById("property-page-body"),
+  backPropertyDetails: document.getElementById("back-property-details"),
+  expenseDetailsBody: document.getElementById("expense-page-body"),
+  backExpenseDetails: document.getElementById("back-expense-details"),
   openExpenseForm: document.getElementById("open-expense-form"),
-  expenseFormModal: document.getElementById("expense-form-modal"),
   closeExpenseForm: document.getElementById("close-expense-form"),
   expenseForm: document.getElementById("expense-form"),
   propertiesTable: document.getElementById("properties-table"),
@@ -416,36 +413,16 @@ function bindEvents() {
     hideExpenseForm();
   });
 
-  els.closeTenantDetails.addEventListener("click", () => {
+  els.backTenantDetails.addEventListener("click", () => {
     hideTenantDetails();
   });
 
-  els.closePropertyDetails.addEventListener("click", () => {
+  els.backPropertyDetails.addEventListener("click", () => {
     hidePropertyDetails();
   });
 
-  els.closeExpenseDetails.addEventListener("click", () => {
+  els.backExpenseDetails.addEventListener("click", () => {
     hideExpenseDetails();
-  });
-
-  els.tenantFormModal.addEventListener("click", (event) => {
-    if (event.target === els.tenantFormModal) hideTenantForm();
-  });
-
-  els.expenseFormModal.addEventListener("click", (event) => {
-    if (event.target === els.expenseFormModal) hideExpenseForm();
-  });
-
-  els.tenantDetailsModal.addEventListener("click", (event) => {
-    if (event.target === els.tenantDetailsModal) hideTenantDetails();
-  });
-
-  els.propertyDetailsModal.addEventListener("click", (event) => {
-    if (event.target === els.propertyDetailsModal) hidePropertyDetails();
-  });
-
-  els.expenseDetailsModal.addEventListener("click", (event) => {
-    if (event.target === els.expenseDetailsModal) hideExpenseDetails();
   });
 
   els.propertyForm.addEventListener("submit", (event) => {
@@ -663,7 +640,6 @@ function bindEvents() {
 
     const tenantDetailsButton = event.target.closest("[data-tenant-details]");
     if (tenantDetailsButton) {
-      if (!els.propertyDetailsModal.hidden) hidePropertyDetails();
       showTenantDetails(tenantDetailsButton.dataset.tenantDetails);
       return;
     }
@@ -703,7 +679,7 @@ function render() {
 
 function getInitialView() {
   const hashView = window.location.hash.replace("#", "");
-  const allowedViews = [...els.viewLinks].map((link) => link.dataset.viewLink);
+  const allowedViews = [...els.views].map((section) => section.dataset.view);
   return allowedViews.includes(hashView) ? hashView : "dashboard";
 }
 
@@ -720,31 +696,32 @@ function setActiveView(view, options = {}) {
   }
 }
 
+function getActiveView() {
+  return [...els.views].find((section) => section.classList.contains("active-view"))?.dataset.view || "dashboard";
+}
+
 function showTenantForm() {
-  els.tenantFormModal.hidden = false;
-  els.tenantFormModal.setAttribute("aria-hidden", "false");
+  setActiveView("add-tenant");
   setTimeout(() => document.getElementById("tenant-id-number").focus(), 50);
 }
 
 function hideTenantForm() {
-  els.tenantFormModal.hidden = true;
-  els.tenantFormModal.setAttribute("aria-hidden", "true");
+  setActiveView("tenants");
 }
 
 function showExpenseForm() {
-  els.expenseFormModal.hidden = false;
-  els.expenseFormModal.setAttribute("aria-hidden", "false");
+  setActiveView("add-expense");
   setTimeout(() => els.expenseRoom.focus(), 50);
 }
 
 function hideExpenseForm() {
-  els.expenseFormModal.hidden = true;
-  els.expenseFormModal.setAttribute("aria-hidden", "true");
+  setActiveView("expenses");
 }
 
 function showTenantDetails(tenantId) {
   const tenant = state.tenants.find((item) => item.id === tenantId);
   if (!tenant) return;
+  detailReturnView = getActiveView();
 
   const apartment = state.apartments.find((item) => item.id === tenant.roomId);
   const property = apartment ? getPropertyById(apartment.propertyId) : null;
@@ -782,13 +759,12 @@ function showTenantDetails(tenantId) {
       </div>
     `)
     .join("");
-  els.tenantDetailsModal.hidden = false;
-  els.tenantDetailsModal.setAttribute("aria-hidden", "false");
+  els.tenantDetailsTitle.textContent = tenant.name || "Tenant Profile";
+  setActiveView("tenant-details");
 }
 
 function hideTenantDetails() {
-  els.tenantDetailsModal.hidden = true;
-  els.tenantDetailsModal.setAttribute("aria-hidden", "true");
+  setActiveView(detailReturnView || "tenants");
   els.tenantDetailsBody.innerHTML = "";
 }
 
@@ -848,13 +824,11 @@ function showPropertyDetails(propertyId) {
     `;
   }
 
-  els.propertyDetailsModal.hidden = false;
-  els.propertyDetailsModal.setAttribute("aria-hidden", "false");
+  setActiveView("property-details");
 }
 
 function hidePropertyDetails() {
-  els.propertyDetailsModal.hidden = true;
-  els.propertyDetailsModal.setAttribute("aria-hidden", "true");
+  setActiveView("properties");
   els.propertyDetailsBody.innerHTML = "";
 }
 
@@ -880,13 +854,11 @@ function showExpenseDetails(expenseId) {
       </div>
     `)
     .join("");
-  els.expenseDetailsModal.hidden = false;
-  els.expenseDetailsModal.setAttribute("aria-hidden", "false");
+  setActiveView("expense-details");
 }
 
 function hideExpenseDetails() {
-  els.expenseDetailsModal.hidden = true;
-  els.expenseDetailsModal.setAttribute("aria-hidden", "true");
+  setActiveView("expenses");
   els.expenseDetailsBody.innerHTML = "";
 }
 
