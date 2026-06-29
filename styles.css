@@ -997,6 +997,10 @@ table {
   font-size: 12px;
 }
 
+.profit-loss-fit-table {
+  margin-bottom: 18px;
+}
+
 .tenants-fit-table th,
 .tenants-fit-table td {
   padding: 11px 8px;

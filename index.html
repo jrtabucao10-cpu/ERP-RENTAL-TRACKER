@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=tenant-remaining-sort">
+  <link rel="stylesheet" href="styles.css?v=report-property-top">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -403,6 +403,24 @@
         </div>
       </div>
 
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table profit-loss-fit-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Total Units</th>
+              <th>Occupied</th>
+              <th>Expected Rent</th>
+              <th>Collected Rent</th>
+              <th>Outstanding</th>
+              <th>Expenses</th>
+              <th>Net Profit / Loss</th>
+            </tr>
+          </thead>
+          <tbody id="profit-loss-table"></tbody>
+        </table>
+      </div>
+
       <section class="report-cards" aria-label="Profit and loss summary">
         <article class="report-card">
           <span>Report month</span>
@@ -441,26 +459,7 @@
           <strong id="report-deposits-used">AED 0</strong>
         </article>
       </section>
-
-      <div class="table-wrap fit-table-wrap">
-        <table class="fit-table profit-loss-fit-table">
-          <thead>
-            <tr>
-              <th>Property</th>
-              <th>Total Units</th>
-              <th>Occupied</th>
-              <th>Expected Rent</th>
-              <th>Collected Rent</th>
-              <th>Outstanding</th>
-              <th>Expenses</th>
-              <th>Net Profit / Loss</th>
-            </tr>
-          </thead>
-          <tbody id="profit-loss-table"></tbody>
-        </table>
-      </div>
     </section>
-
     <section id="property-report-page" class="panel view wide-view" data-view="property-report">
       <div class="panel-head">
         <div>
@@ -489,6 +488,25 @@
         </div>
       </div>
 
+      <div class="filter-bar payments-filter-bar">
+        <label>
+          Search
+          <input id="payments-search" type="search" placeholder="Room, tenant, property">
+        </label>
+        <label>
+          Property
+          <select id="payments-property-filter"></select>
+        </label>
+        <label>
+          Payment status
+          <select id="payments-status-filter">
+            <option value="all">All status</option>
+            <option value="Paid">Paid</option>
+            <option value="Partial">Partial</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+        </label>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -517,6 +535,20 @@
         </div>
       </div>
 
+      <div class="filter-bar utility-filter-bar">
+        <label>
+          Search
+          <input id="utilities-search" type="search" placeholder="Apartment or expense">
+        </label>
+        <label>
+          Property
+          <select id="utilities-property-filter"></select>
+        </label>
+        <label>
+          Month
+          <input id="utilities-month-filter" type="month">
+        </label>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -542,6 +574,20 @@
         <button id="open-expense-form" class="secondary-action" type="button">Add expense</button>
       </div>
 
+      <div class="filter-bar expense-filter-bar">
+        <label>
+          Search
+          <input id="expenses-search" type="search" placeholder="Expense, apartment, property">
+        </label>
+        <label>
+          Property
+          <select id="expenses-property-filter"></select>
+        </label>
+        <label>
+          Month
+          <input id="expenses-month-filter" type="month">
+        </label>
+      </div>
       <div class="table-wrap fit-table-wrap">
         <table class="fit-table expenses-fit-table">
           <thead>
@@ -648,7 +694,7 @@
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=tenant-remaining-sort"></script>
+  <script src="app.js?v=report-property-top"></script>
 </body>
 </html>
 

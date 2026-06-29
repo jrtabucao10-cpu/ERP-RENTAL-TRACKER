@@ -339,7 +339,16 @@ const els = {
   propertyReportBody: document.getElementById("property-report-body"),
   backPropertyReport: document.getElementById("back-property-report"),
   logsTable: document.getElementById("logs-table"),
+  paymentsSearch: document.getElementById("payments-search"),
+  paymentsPropertyFilter: document.getElementById("payments-property-filter"),
+  paymentsStatusFilter: document.getElementById("payments-status-filter"),
   expensesTable: document.getElementById("expenses-table"),
+  expensesSearch: document.getElementById("expenses-search"),
+  expensesPropertyFilter: document.getElementById("expenses-property-filter"),
+  expensesMonthFilter: document.getElementById("expenses-month-filter"),
+  utilitiesSearch: document.getElementById("utilities-search"),
+  utilitiesPropertyFilter: document.getElementById("utilities-property-filter"),
+  utilitiesMonthFilter: document.getElementById("utilities-month-filter"),
   apartmentProperty: document.getElementById("apartment-property"),
   tenantRoom: document.getElementById("tenant-room"),
   expenseRoom: document.getElementById("expense-room"),
@@ -367,6 +376,8 @@ init();
 
 function init() {
   els.targetMonth.value = getCurrentMonthValue();
+  els.expensesMonthFilter.value = getCurrentMonthValue();
+  els.utilitiesMonthFilter.value = getCurrentMonthValue();
   document.getElementById("expense-date").value = getTodayValue();
   els.currentMonthLabel.textContent = monthFormatter.format(monthValueToDate(getCurrentMonthValue()));
   bindEvents();
@@ -598,6 +609,21 @@ function bindEvents() {
     control.addEventListener("change", () => renderTenants());
   });
 
+  [els.paymentsSearch, els.paymentsPropertyFilter, els.paymentsStatusFilter].forEach((control) => {
+    control.addEventListener("input", () => renderLogs());
+    control.addEventListener("change", () => renderLogs());
+  });
+
+  [els.expensesSearch, els.expensesPropertyFilter, els.expensesMonthFilter].forEach((control) => {
+    control.addEventListener("input", () => renderExpenses());
+    control.addEventListener("change", () => renderExpenses());
+  });
+
+  [els.utilitiesSearch, els.utilitiesPropertyFilter, els.utilitiesMonthFilter].forEach((control) => {
+    control.addEventListener("input", () => renderUtilities());
+    control.addEventListener("change", () => renderUtilities());
+  });
+
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
   });
@@ -713,6 +739,9 @@ function render() {
   renderPropertySelect();
   renderTenantFilters();
   renderClientSummaryFilters();
+  renderPropertyFilterOptions(els.paymentsPropertyFilter);
+  renderPropertyFilterOptions(els.expensesPropertyFilter);
+  renderPropertyFilterOptions(els.utilitiesPropertyFilter);
   renderProperties();
   renderRoomSelect();
   renderApartments();
@@ -734,11 +763,15 @@ function renderClientSummaryFilters() {
 }
 
 function renderTenantFilters() {
-  const currentValue = els.tenantPropertyFilter.value || "all";
+  renderPropertyFilterOptions(els.tenantPropertyFilter);
+}
+
+function renderPropertyFilterOptions(select) {
+  const currentValue = select.value || "all";
   const options = [`<option value="all">All properties</option>`]
     .concat(state.properties.map((property) => `<option value="${property.id}">${escapeHtml(property.name)}</option>`));
-  els.tenantPropertyFilter.innerHTML = options.join("");
-  els.tenantPropertyFilter.value = state.properties.some((property) => property.id === currentValue) ? currentValue : "all";
+  select.innerHTML = options.join("");
+  select.value = state.properties.some((property) => property.id === currentValue) ? currentValue : "all";
 }
 
 function getInitialView() {
@@ -1398,8 +1431,24 @@ function renderReports() {
 
 function renderLogs() {
   const month = els.targetMonth.value || getCurrentMonthValue();
+  const searchTerm = els.paymentsSearch.value.trim().toLowerCase();
+  const propertyFilter = els.paymentsPropertyFilter.value || "all";
+  const statusFilter = els.paymentsStatusFilter.value || "all";
   const logs = state.logs
     .filter((log) => log.targetMonth === month)
+    .filter((log) => {
+      const status = getPaymentStatus(log.rentDue, log.amountPaid);
+      const searchable = [
+        log.propertyName || getPropertyByApartmentId(log.roomId)?.name || "",
+        log.roomName,
+        log.renterName || "Vacant",
+        status
+      ].join(" ").toLowerCase();
+      if (propertyFilter !== "all" && log.propertyId !== propertyFilter) return false;
+      if (statusFilter !== "all" && status !== statusFilter) return false;
+      if (searchTerm && !searchable.includes(searchTerm)) return false;
+      return true;
+    })
     .sort((a, b) => a.roomName.localeCompare(b.roomName, undefined, { numeric: true }));
 
   if (!logs.length) {
@@ -1443,12 +1492,29 @@ function renderLogs() {
 
 function renderExpenses() {
   ensureStateShape();
-  if (!state.expenses.length) {
+  const searchTerm = els.expensesSearch.value.trim().toLowerCase();
+  const propertyFilter = els.expensesPropertyFilter.value || "all";
+  const monthFilter = els.expensesMonthFilter.value || "";
+  const filteredExpenses = state.expenses.filter((expense) => {
+    const apartment = state.apartments.find((item) => item.id === expense.roomId);
+    const property = apartment ? getPropertyById(apartment.propertyId) : null;
+    const searchable = [
+      expense.name,
+      apartment ? getApartmentLabel(apartment) : "",
+      property?.name
+    ].join(" ").toLowerCase();
+    if (propertyFilter !== "all" && apartment?.propertyId !== propertyFilter) return false;
+    if (monthFilter && expense.date?.slice(0, 7) !== monthFilter) return false;
+    if (searchTerm && !searchable.includes(searchTerm)) return false;
+    return true;
+  });
+
+  if (!filteredExpenses.length) {
     renderEmpty(els.expensesTable, 4, "No expenses yet. Add an apartment expense above.");
     return;
   }
 
-  const sortedExpenses = state.expenses
+  const sortedExpenses = filteredExpenses
     .slice()
     .sort((a, b) => new Date(b.date) - new Date(a.date));
   const totalExpenses = sortedExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
@@ -1484,12 +1550,29 @@ function renderExpenses() {
 }
 
 function renderUtilities() {
-  if (!state.expenses.length) {
+  const searchTerm = els.utilitiesSearch.value.trim().toLowerCase();
+  const propertyFilter = els.utilitiesPropertyFilter.value || "all";
+  const monthFilter = els.utilitiesMonthFilter.value || "";
+  const filteredExpenses = state.expenses.filter((expense) => {
+    const apartment = state.apartments.find((item) => item.id === expense.roomId);
+    const property = apartment ? getPropertyById(apartment.propertyId) : null;
+    const searchable = [
+      expense.name,
+      apartment ? getApartmentLabel(apartment) : "",
+      property?.name
+    ].join(" ").toLowerCase();
+    if (propertyFilter !== "all" && apartment?.propertyId !== propertyFilter) return false;
+    if (monthFilter && expense.date?.slice(0, 7) !== monthFilter) return false;
+    if (searchTerm && !searchable.includes(searchTerm)) return false;
+    return true;
+  });
+
+  if (!filteredExpenses.length) {
     renderEmpty(els.utilitiesTable, 4, "No utility or expense records yet.");
     return;
   }
 
-  const utilityRows = state.expenses
+  const utilityRows = filteredExpenses
     .slice()
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .map((expense) => {
