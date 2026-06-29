@@ -905,6 +905,14 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover td {
+  background: #f8f4eb;
+}
+
 .total-row td {
   background: var(--green-soft);
   color: var(--green);

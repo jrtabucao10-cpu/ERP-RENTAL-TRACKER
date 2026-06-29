@@ -628,9 +628,9 @@ function bindEvents() {
   });
 
   document.addEventListener("click", (event) => {
-    const propertyDetailsButton = event.target.closest("[data-property-details]");
-    if (propertyDetailsButton) {
-      showPropertyDetails(propertyDetailsButton.dataset.propertyDetails);
+    const propertyDetailsTarget = event.target.closest("[data-property-details]");
+    if (propertyDetailsTarget) {
+      showPropertyDetails(propertyDetailsTarget.dataset.propertyDetails);
       return;
     }
 
@@ -887,9 +887,9 @@ function renderProperties() {
       const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
       const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
       return `
-        <tr>
+        <tr class="clickable-row" data-property-details="${property.id}">
           <td>
-            <button class="link-button property-name-button" type="button" data-property-details="${property.id}">
+            <button class="link-button property-name-button" type="button">
               ${escapeHtml(property.name)}
             </button>
           </td>
