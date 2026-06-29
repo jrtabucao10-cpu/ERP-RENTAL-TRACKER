@@ -344,13 +344,13 @@ function init() {
   els.currentMonthLabel.textContent = monthFormatter.format(monthValueToDate(getCurrentMonthValue()));
   bindEvents();
   updateLoginView();
-  setActiveView(getInitialView());
   ensureStateShape();
   if (state.apartments.length && !state.logs.length) {
     generateMonthLog(getCurrentMonthValue());
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
   render();
+  setActiveView(getInitialView());
 }
 
 function bindEvents() {
@@ -359,6 +359,10 @@ function bindEvents() {
       event.preventDefault();
       setActiveView(link.dataset.viewLink);
     });
+  });
+
+  window.addEventListener("hashchange", () => {
+    setActiveView(getInitialView(), { replaceHash: false });
   });
 
   els.loginForm.addEventListener("submit", (event) => {
@@ -617,7 +621,7 @@ function getInitialView() {
   return allowedViews.includes(hashView) ? hashView : "dashboard";
 }
 
-function setActiveView(view) {
+function setActiveView(view, options = {}) {
   const activeView = view || "dashboard";
   els.views.forEach((section) => {
     section.classList.toggle("active-view", section.dataset.view === activeView);
@@ -625,7 +629,7 @@ function setActiveView(view) {
   els.viewLinks.forEach((link) => {
     link.classList.toggle("active", link.dataset.viewLink === activeView);
   });
-  if (window.location.hash !== `#${activeView}`) {
+  if (options.replaceHash !== false && window.location.hash !== `#${activeView}`) {
     history.replaceState(null, "", `#${activeView}`);
   }
 }
