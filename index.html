@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=property-contract-columns">
+  <link rel="stylesheet" href="styles.css?v=client-summary-filters">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -315,12 +315,32 @@
         </div>
       </div>
 
+      <div class="filter-bar">
+        <label>
+          Search
+          <input id="client-summary-search" type="search" placeholder="Tenant, ID, contact, email">
+        </label>
+        <label>
+          Property
+          <select id="client-summary-property-filter"></select>
+        </label>
+        <label>
+          Status
+          <select id="client-summary-status-filter">
+            <option value="all">All tenants</option>
+            <option value="Checked in">Current tenants</option>
+            <option value="Checked out">Old tenants</option>
+          </select>
+        </label>
+      </div>
+
       <div class="table-wrap summary-wrap fit-table-wrap">
-        <table class="summary-table fit-table">
+        <table class="summary-table fit-table client-summary-fit-table">
           <thead>
             <tr>
               <th>Tenant ID</th>
               <th>Tenant Name</th>
+              <th>Contacts</th>
               <th>Property</th>
               <th>Current Room</th>
               <th>Monthly Rent</th>
@@ -586,7 +606,7 @@
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=property-contract-columns"></script>
+  <script src="app.js?v=client-summary-filters"></script>
 </body>
 </html>
 

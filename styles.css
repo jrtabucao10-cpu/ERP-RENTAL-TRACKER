@@ -509,6 +509,19 @@ h2 {
   grid-template-columns: 1fr 1.3fr 160px 190px 160px;
 }
 
+.filter-bar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(2, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.filter-bar label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -935,6 +948,10 @@ table {
   min-width: 2100px;
 }
 
+.client-summary-fit-table {
+  min-width: 0;
+}
+
 .fit-table-wrap {
   overflow-x: hidden;
 }
@@ -961,6 +978,13 @@ table {
 
 .fit-table .badge {
   white-space: normal;
+}
+
+.subtext {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .profit-loss-fit-table th,

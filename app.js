@@ -314,6 +314,9 @@ const els = {
   apartmentsTable: document.getElementById("apartments-table"),
   tenantsTable: document.getElementById("tenants-table"),
   clientSummaryTable: document.getElementById("client-summary-table"),
+  clientSummarySearch: document.getElementById("client-summary-search"),
+  clientSummaryPropertyFilter: document.getElementById("client-summary-property-filter"),
+  clientSummaryStatusFilter: document.getElementById("client-summary-status-filter"),
   utilitiesTable: document.getElementById("utilities-table"),
   profitLossTable: document.getElementById("profit-loss-table"),
   reportMonthLabel: document.getElementById("report-month-label"),
@@ -570,6 +573,11 @@ function bindEvents() {
     renderReports();
   });
 
+  [els.clientSummarySearch, els.clientSummaryPropertyFilter, els.clientSummaryStatusFilter].forEach((control) => {
+    control.addEventListener("input", () => renderClientSummary());
+    control.addEventListener("change", () => renderClientSummary());
+  });
+
   els.downloadLog.addEventListener("click", () => {
     downloadCurrentMonthCsv();
   });
@@ -683,6 +691,7 @@ function bindEvents() {
 function render() {
   ensureStateShape();
   renderPropertySelect();
+  renderClientSummaryFilters();
   renderProperties();
   renderRoomSelect();
   renderApartments();
@@ -693,6 +702,14 @@ function render() {
   renderExpenses();
   renderUtilities();
   renderStats();
+}
+
+function renderClientSummaryFilters() {
+  const currentValue = els.clientSummaryPropertyFilter.value || "all";
+  const options = [`<option value="all">All properties</option>`]
+    .concat(state.properties.map((property) => `<option value="${property.id}">${escapeHtml(property.name)}</option>`));
+  els.clientSummaryPropertyFilter.innerHTML = options.join("");
+  els.clientSummaryPropertyFilter.value = state.properties.some((property) => property.id === currentValue) ? currentValue : "all";
 }
 
 function getInitialView() {
@@ -1213,9 +1230,28 @@ function renderTenants() {
 }
 
 function renderClientSummary() {
-  const rows = getClientSummaryRows();
+  const searchTerm = els.clientSummarySearch.value.trim().toLowerCase();
+  const propertyFilter = els.clientSummaryPropertyFilter.value || "all";
+  const statusFilter = els.clientSummaryStatusFilter.value || "all";
+  const rows = getClientSummaryRows().filter((row) => {
+    const matchesProperty = propertyFilter === "all" || row.propertyId === propertyFilter;
+    const matchesStatus = statusFilter === "all" || row.status === statusFilter;
+    const searchable = [
+      row.tenantId,
+      row.tenantName,
+      row.localContact,
+      row.internationalContact,
+      row.email,
+      row.property,
+      row.unitNumber,
+      row.status
+    ].join(" ").toLowerCase();
+    const matchesSearch = !searchTerm || searchable.includes(searchTerm);
+    return matchesProperty && matchesStatus && matchesSearch;
+  });
+
   if (!rows.length) {
-    renderEmpty(els.clientSummaryTable, 6, "No client summary yet. Add a tenant above to start.");
+    renderEmpty(els.clientSummaryTable, 7, "No matching client records.");
     return;
   }
 
@@ -1227,6 +1263,11 @@ function renderClientSummary() {
           <button class="link-button tenant-name-button" type="button" data-tenant-details="${row.tenantRecordId}">
             ${escapeHtml(row.tenantName)}
           </button>
+        </td>
+        <td>
+          <strong>${escapeHtml(row.localContact)}</strong>
+          <span class="subtext">${escapeHtml(row.internationalContact)}</span>
+          <span class="subtext">${escapeHtml(row.email)}</span>
         </td>
         <td>${escapeHtml(row.property)}</td>
         <td>${escapeHtml(row.unitNumber)}</td>
@@ -1445,6 +1486,7 @@ function getClientSummaryRows() {
 
       return {
         tenantRecordId: tenant.id,
+        propertyId: property?.id || "",
         property: property?.name || "Property deleted",
         tenantId: tenant.tenantIdNumber || "—",
         unitNumber: apartment?.unitNumber || "Unit deleted",
