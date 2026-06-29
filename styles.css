@@ -190,7 +190,7 @@ button {
 }
 
 .hero {
-  padding: 18px clamp(18px, 4vw, 52px);
+  padding: 18px clamp(18px, 2vw, 34px);
   background:
     radial-gradient(circle at top right, rgba(199, 146, 45, 0.16), transparent 30%),
     linear-gradient(135deg, #fffdf8 0%, #f5efe3 100%);
@@ -200,8 +200,9 @@ button {
 .topbar,
 .hero-grid,
 .shell {
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .topbar {
@@ -354,7 +355,7 @@ h2 {
   gap: 16px;
   height: calc(100vh - 118px);
   min-height: 0;
-  padding: 20px clamp(18px, 4vw, 52px);
+  padding: 20px clamp(18px, 2vw, 34px);
   overflow: hidden;
 }
 
@@ -427,6 +428,10 @@ h2 {
   overflow: hidden;
 }
 
+.wide-view {
+  width: 100%;
+}
+
 .panel.active-view {
   flex: 1;
   overflow: auto;
@@ -439,6 +444,10 @@ h2 {
 .panel.active-view .table-wrap {
   flex: 1;
   min-height: 0;
+}
+
+.wide-view.active-view .table-wrap {
+  width: 100%;
 }
 
 .anchor-target {
@@ -634,6 +643,10 @@ select:focus {
   width: min(860px, 96vw);
 }
 
+.property-details-card {
+  width: min(1280px, 96vw);
+}
+
 .modal-head {
   display: flex;
   align-items: flex-start;
@@ -704,6 +717,23 @@ select:focus {
 
 .tenant-name-button {
   font-size: 14px;
+}
+
+.property-name-button {
+  font-size: 14px;
+}
+
+.property-details-wrap {
+  max-height: 68vh;
+}
+
+.property-details-table {
+  min-width: 1450px;
+}
+
+.property-empty {
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
 .map-modal[hidden] {
@@ -852,7 +882,7 @@ table {
 }
 
 .summary-table {
-  min-width: 2300px;
+  min-width: 2100px;
 }
 
 th,
@@ -898,7 +928,8 @@ tbody tr:last-child td {
 }
 
 .badge.no,
-.badge.unpaid {
+.badge.unpaid,
+.badge.danger {
   background: #f8e7e5;
   color: var(--danger);
 }

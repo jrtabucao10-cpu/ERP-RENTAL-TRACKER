@@ -301,6 +301,10 @@ const els = {
   tenantDetailsModal: document.getElementById("tenant-details-modal"),
   tenantDetailsBody: document.getElementById("tenant-details-body"),
   closeTenantDetails: document.getElementById("close-tenant-details"),
+  propertyDetailsModal: document.getElementById("property-details-modal"),
+  propertyDetailsTitle: document.getElementById("property-details-title"),
+  propertyDetailsBody: document.getElementById("property-details-body"),
+  closePropertyDetails: document.getElementById("close-property-details"),
   expenseForm: document.getElementById("expense-form"),
   propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
@@ -402,12 +406,20 @@ function bindEvents() {
     hideTenantDetails();
   });
 
+  els.closePropertyDetails.addEventListener("click", () => {
+    hidePropertyDetails();
+  });
+
   els.tenantFormModal.addEventListener("click", (event) => {
     if (event.target === els.tenantFormModal) hideTenantForm();
   });
 
   els.tenantDetailsModal.addEventListener("click", (event) => {
     if (event.target === els.tenantDetailsModal) hideTenantDetails();
+  });
+
+  els.propertyDetailsModal.addEventListener("click", (event) => {
+    if (event.target === els.propertyDetailsModal) hidePropertyDetails();
   });
 
   els.propertyForm.addEventListener("submit", (event) => {
@@ -616,6 +628,12 @@ function bindEvents() {
   });
 
   document.addEventListener("click", (event) => {
+    const propertyDetailsButton = event.target.closest("[data-property-details]");
+    if (propertyDetailsButton) {
+      showPropertyDetails(propertyDetailsButton.dataset.propertyDetails);
+      return;
+    }
+
     const tenantDetailsButton = event.target.closest("[data-tenant-details]");
     if (tenantDetailsButton) {
       showTenantDetails(tenantDetailsButton.dataset.tenantDetails);
@@ -729,6 +747,87 @@ function hideTenantDetails() {
   els.tenantDetailsBody.innerHTML = "";
 }
 
+function showPropertyDetails(propertyId) {
+  const property = getPropertyById(propertyId);
+  if (!property) return;
+
+  const month = getCurrentMonthValue();
+  const occupiedUnits = state.apartments
+    .filter((apartment) => apartment.propertyId === propertyId)
+    .map((apartment) => ({
+      apartment,
+      tenant: getTenantForRoom(apartment.id, month)
+    }))
+    .filter((item) => item.tenant)
+    .sort((a, b) => a.apartment.unitNumber.localeCompare(b.apartment.unitNumber, undefined, { numeric: true }));
+
+  els.propertyDetailsTitle.textContent = `${property.name} Occupied Units`;
+
+  if (!occupiedUnits.length) {
+    els.propertyDetailsBody.innerHTML = `<div class="empty-state property-empty">No occupied units in this property for the selected month.</div>`;
+  } else {
+    els.propertyDetailsBody.innerHTML = `
+      <div class="table-wrap property-details-wrap">
+        <table class="property-details-table">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Tenant ID</th>
+              <th>Name</th>
+              <th>Local Contact</th>
+              <th>International Contact</th>
+              <th>Monthly Rent</th>
+              <th>Contract End</th>
+              <th>Remaining Days</th>
+              <th>Status</th>
+              <th>Occupancy</th>
+              <th>Nationality</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${occupiedUnits
+              .map(({ apartment, tenant }) => {
+                const metrics = getContractMetrics(tenant);
+                const status = getContractStatus(tenant);
+                return `
+                  <tr>
+                    <td><strong>${escapeHtml(apartment.unitNumber)}</strong></td>
+                    <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
+                    <td>
+                      <button class="link-button tenant-name-button" type="button" data-tenant-details="${tenant.id}">
+                        ${escapeHtml(tenant.name)}
+                      </button>
+                    </td>
+                    <td>${escapeHtml(tenant.localPhone || tenant.phone || "-")}</td>
+                    <td>${escapeHtml(tenant.internationalPhone || "-")}</td>
+                    <td>${escapeHtml(formatMoney(getTenantMonthlyRent(tenant, apartment)))}</td>
+                    <td>${escapeHtml(formatDate(getTenantEndDate(tenant)))}</td>
+                    <td>${escapeHtml(metrics.remainingDays)}</td>
+                    <td><span class="badge ${status === "Checked in" ? "yes" : "danger"}">${escapeHtml(status)}</span></td>
+                    <td>${escapeHtml(tenant.occupancy || "-")}</td>
+                    <td>${escapeHtml(tenant.nationality || "-")}</td>
+                    <td>${escapeHtml(tenant.email || "-")}</td>
+                  </tr>
+                `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  els.propertyDetailsModal.hidden = false;
+  els.propertyDetailsModal.setAttribute("aria-hidden", "false");
+}
+
+function hidePropertyDetails() {
+  els.propertyDetailsModal.hidden = true;
+  els.propertyDetailsModal.setAttribute("aria-hidden", "true");
+  els.propertyDetailsBody.innerHTML = "";
+}
+
 function renderPropertySelect() {
   if (!state.properties.length) {
     els.apartmentProperty.innerHTML = `<option value="">Add a property first</option>`;
@@ -789,7 +888,11 @@ function renderProperties() {
       const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
       return `
         <tr>
-          <td><strong>${escapeHtml(property.name)}</strong></td>
+          <td>
+            <button class="link-button property-name-button" type="button" data-property-details="${property.id}">
+              ${escapeHtml(property.name)}
+            </button>
+          </td>
           <td>${apartments.length}</td>
           <td>${occupied}</td>
           <td><span class="badge yes">Active</span></td>
