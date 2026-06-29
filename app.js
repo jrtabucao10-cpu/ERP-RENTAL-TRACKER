@@ -304,6 +304,7 @@ const els = {
   propertyDetailsTitle: document.getElementById("property-page-title"),
   propertyDetailsBody: document.getElementById("property-page-body"),
   backPropertyDetails: document.getElementById("back-property-details"),
+  addTenantFromProperty: document.getElementById("add-tenant-from-property"),
   expenseDetailsBody: document.getElementById("expense-page-body"),
   backExpenseDetails: document.getElementById("back-expense-details"),
   openExpenseForm: document.getElementById("open-expense-form"),
@@ -422,6 +423,10 @@ function bindEvents() {
 
   els.backPropertyDetails.addEventListener("click", () => {
     hidePropertyDetails();
+  });
+
+  els.addTenantFromProperty.addEventListener("click", () => {
+    showTenantForm();
   });
 
   els.backExpenseDetails.addEventListener("click", () => {
@@ -808,6 +813,10 @@ function showPropertyDetails(propertyId) {
               <th>Tenant ID</th>
               <th>Name</th>
               <th>Current Room</th>
+              <th>Contract Sign Date</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Remaining Days</th>
               <th>Monthly Rent</th>
               <th>Status</th>
             </tr>
@@ -816,6 +825,7 @@ function showPropertyDetails(propertyId) {
             ${occupiedUnits
               .map(({ apartment, tenant }) => {
                 const status = getContractStatus(tenant);
+                const metrics = getContractMetrics(tenant);
                 return `
                   <tr>
                     <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
@@ -825,6 +835,10 @@ function showPropertyDetails(propertyId) {
                       </button>
                     </td>
                     <td>${escapeHtml(apartment.unitNumber)}</td>
+                    <td>${formatDate(tenant.contractSignUpDate)}</td>
+                    <td>${formatDate(tenant.moveInDate)}</td>
+                    <td>${formatDate(getTenantEndDate(tenant))}</td>
+                    <td>${escapeHtml(metrics.remainingDays)}</td>
                     <td>${escapeHtml(formatMoney(getTenantMonthlyRent(tenant, apartment)))}</td>
                     <td><span class="badge ${status === "Checked in" ? "yes" : "danger"}">${escapeHtml(status)}</span></td>
                   </tr>
@@ -1168,7 +1182,7 @@ function renderTenants() {
 
 function renderTenants() {
   if (!state.tenants.length) {
-    renderEmpty(els.tenantsTable, 5);
+    renderEmpty(els.tenantsTable, 9);
     return;
   }
 
@@ -1176,6 +1190,7 @@ function renderTenants() {
     .map((tenant) => {
       const apartment = state.apartments.find((item) => item.id === tenant.roomId);
       const status = getContractStatus(tenant);
+      const metrics = getContractMetrics(tenant);
       return `
         <tr>
           <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
@@ -1185,6 +1200,10 @@ function renderTenants() {
             </button>
           </td>
           <td>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Room deleted"}</td>
+          <td>${formatDate(tenant.contractSignUpDate)}</td>
+          <td>${formatDate(tenant.moveInDate)}</td>
+          <td>${formatDate(getTenantEndDate(tenant))}</td>
+          <td>${escapeHtml(metrics.remainingDays)}</td>
           <td>${formatMoney(getTenantMonthlyRent(tenant, apartment))}</td>
           <td><span class="badge ${status === "Checked in" ? "yes" : "no"}">${status}</span></td>
         </tr>

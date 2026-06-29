@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=property-report-page">
+  <link rel="stylesheet" href="styles.css?v=property-contract-columns">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -199,13 +199,17 @@
         <button id="open-tenant-form" class="secondary-action" type="button">Add tenant</button>
       </div>
 
-      <div class="table-wrap">
-        <table>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table tenants-fit-table">
           <thead>
             <tr>
               <th>Tenant ID</th>
               <th>Name</th>
               <th>Current Room</th>
+              <th>Contract Sign Date</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Remaining Days</th>
               <th>Monthly Rent</th>
               <th>Status</th>
             </tr>
@@ -539,7 +543,10 @@
           <p class="eyebrow">Property Details</p>
           <h2 id="property-page-title">Occupied Units</h2>
         </div>
-        <button id="back-property-details" class="secondary-action" type="button">Back to property</button>
+        <div class="page-actions">
+          <button id="add-tenant-from-property" class="secondary-action" type="button">Add tenant</button>
+          <button id="back-property-details" class="secondary-action" type="button">Back to property</button>
+        </div>
       </div>
       <div id="property-page-body"></div>
     </section>
@@ -579,7 +586,7 @@
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=property-report-page"></script>
+  <script src="app.js?v=property-contract-columns"></script>
 </body>
 </html>
 
