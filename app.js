@@ -295,6 +295,12 @@ const els = {
   propertyForm: document.getElementById("property-form"),
   apartmentForm: document.getElementById("apartment-form"),
   tenantForm: document.getElementById("tenant-form"),
+  openTenantForm: document.getElementById("open-tenant-form"),
+  tenantFormModal: document.getElementById("tenant-form-modal"),
+  closeTenantForm: document.getElementById("close-tenant-form"),
+  tenantDetailsModal: document.getElementById("tenant-details-modal"),
+  tenantDetailsBody: document.getElementById("tenant-details-body"),
+  closeTenantDetails: document.getElementById("close-tenant-details"),
   expenseForm: document.getElementById("expense-form"),
   propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
@@ -382,6 +388,26 @@ function bindEvents() {
   els.signOut.addEventListener("click", () => {
     localStorage.removeItem(AUTH_SESSION_KEY);
     updateLoginView();
+  });
+
+  els.openTenantForm.addEventListener("click", () => {
+    showTenantForm();
+  });
+
+  els.closeTenantForm.addEventListener("click", () => {
+    hideTenantForm();
+  });
+
+  els.closeTenantDetails.addEventListener("click", () => {
+    hideTenantDetails();
+  });
+
+  els.tenantFormModal.addEventListener("click", (event) => {
+    if (event.target === els.tenantFormModal) hideTenantForm();
+  });
+
+  els.tenantDetailsModal.addEventListener("click", (event) => {
+    if (event.target === els.tenantDetailsModal) hideTenantDetails();
   });
 
   els.propertyForm.addEventListener("submit", (event) => {
@@ -479,7 +505,9 @@ function bindEvents() {
     });
 
     els.tenantForm.reset();
+    hideTenantForm();
     persistAndRender();
+    setActiveView("tenants");
   });
 
   els.expenseForm.addEventListener("submit", (event) => {
@@ -588,6 +616,12 @@ function bindEvents() {
   });
 
   document.addEventListener("click", (event) => {
+    const tenantDetailsButton = event.target.closest("[data-tenant-details]");
+    if (tenantDetailsButton) {
+      showTenantDetails(tenantDetailsButton.dataset.tenantDetails);
+      return;
+    }
+
     const button = event.target.closest("[data-delete]");
     if (!button) return;
     deleteRecord(button.dataset.delete, button.dataset.id);
@@ -634,6 +668,67 @@ function setActiveView(view, options = {}) {
   }
 }
 
+function showTenantForm() {
+  els.tenantFormModal.hidden = false;
+  els.tenantFormModal.setAttribute("aria-hidden", "false");
+  setTimeout(() => document.getElementById("tenant-id-number").focus(), 50);
+}
+
+function hideTenantForm() {
+  els.tenantFormModal.hidden = true;
+  els.tenantFormModal.setAttribute("aria-hidden", "true");
+}
+
+function showTenantDetails(tenantId) {
+  const tenant = state.tenants.find((item) => item.id === tenantId);
+  if (!tenant) return;
+
+  const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+  const property = apartment ? getPropertyById(apartment.propertyId) : null;
+  const metrics = getContractMetrics(tenant);
+  const status = getContractStatus(tenant);
+  const details = [
+    ["Property", property?.name || "-"],
+    ["Tenant ID", tenant.tenantIdNumber || "-"],
+    ["Unit Number", apartment?.unitNumber || "Room deleted"],
+    ["Tenant Name", tenant.name],
+    ["Local Contact", tenant.localPhone || tenant.phone || "-"],
+    ["International Contact", tenant.internationalPhone || "-"],
+    ["Email", tenant.email || "-"],
+    ["Nationality", tenant.nationality || "-"],
+    ["Gender", tenant.gender || "-"],
+    ["Occupancy", tenant.occupancy || "-"],
+    ["Contract Sign Up", formatDate(tenant.contractSignUpDate)],
+    ["Start of Moving In", formatDate(tenant.moveInDate)],
+    ["End", formatDate(getTenantEndDate(tenant))],
+    ["Remaining Days", metrics.remainingDays],
+    ["Total Stay", metrics.totalStay],
+    ["Total Month", metrics.totalMonths],
+    ["Total Years", metrics.totalYears],
+    ["Status", status],
+    ["Monthly Rental Amount", formatMoney(getTenantMonthlyRent(tenant, apartment))],
+    ["Deposit Amount", formatMoney(tenant.deposit || 0)],
+    ["Deposit Status", tenant.depositStatus || "Received"]
+  ];
+
+  els.tenantDetailsBody.innerHTML = details
+    .map(([label, value]) => `
+      <div class="detail-item">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `)
+    .join("");
+  els.tenantDetailsModal.hidden = false;
+  els.tenantDetailsModal.setAttribute("aria-hidden", "false");
+}
+
+function hideTenantDetails() {
+  els.tenantDetailsModal.hidden = true;
+  els.tenantDetailsModal.setAttribute("aria-hidden", "true");
+  els.tenantDetailsBody.innerHTML = "";
+}
+
 function renderPropertySelect() {
   if (!state.properties.length) {
     els.apartmentProperty.innerHTML = `<option value="">Add a property first</option>`;
@@ -648,13 +743,16 @@ function renderPropertySelect() {
 }
 
 function renderProperties() {
-  if (!state.properties.length) {
-    renderEmpty(els.propertiesTable, 5, "No properties yet. Add a property/building above first.");
+  const activePropertyNames = ["Mani 6", "Mani 7", "Mani 8"];
+  const activeProperties = state.properties.filter((property) => activePropertyNames.includes(property.name));
+
+  if (!activeProperties.length) {
+    renderEmpty(els.propertiesTable, 4, "No active properties yet.");
     return;
   }
 
   const month = getCurrentMonthValue();
-  els.propertiesTable.innerHTML = state.properties
+  els.propertiesTable.innerHTML = activeProperties
     .map((property) => {
       const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
       const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
@@ -669,6 +767,32 @@ function renderProperties() {
               <button class="small-btn danger" data-delete="property" data-id="${property.id}">Delete</button>
             </div>
           </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function renderProperties() {
+  const activePropertyNames = ["Mani 6", "Mani 7", "Mani 8"];
+  const activeProperties = state.properties.filter((property) => activePropertyNames.includes(property.name));
+
+  if (!activeProperties.length) {
+    renderEmpty(els.propertiesTable, 4, "No active properties yet.");
+    return;
+  }
+
+  const month = getCurrentMonthValue();
+  els.propertiesTable.innerHTML = activeProperties
+    .map((property) => {
+      const apartments = state.apartments.filter((apartment) => apartment.propertyId === property.id);
+      const occupied = apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length;
+      return `
+        <tr>
+          <td><strong>${escapeHtml(property.name)}</strong></td>
+          <td>${apartments.length}</td>
+          <td>${occupied}</td>
+          <td><span class="badge yes">Active</span></td>
         </tr>
       `;
     })
@@ -770,6 +894,33 @@ function renderTenants() {
       <td></td>
     </tr>
   `;
+}
+
+function renderTenants() {
+  if (!state.tenants.length) {
+    renderEmpty(els.tenantsTable, 5);
+    return;
+  }
+
+  els.tenantsTable.innerHTML = state.tenants
+    .map((tenant) => {
+      const apartment = state.apartments.find((item) => item.id === tenant.roomId);
+      const status = getContractStatus(tenant);
+      return `
+        <tr>
+          <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
+          <td>
+            <button class="link-button tenant-name-button" type="button" data-tenant-details="${tenant.id}">
+              ${escapeHtml(tenant.name)}
+            </button>
+          </td>
+          <td>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Room deleted"}</td>
+          <td>${formatMoney(getTenantMonthlyRent(tenant, apartment))}</td>
+          <td><span class="badge ${status === "Checked in" ? "yes" : "no"}">${status}</span></td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 function renderClientSummary() {

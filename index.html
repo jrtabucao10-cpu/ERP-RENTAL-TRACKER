@@ -33,13 +33,13 @@
 
     <nav class="sidebar-nav">
       <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">▣</span>Dashboard</a>
-      <a class="nav-item" href="#apartments" data-view-link="apartments"><span class="nav-icon">⌂</span>Apartments</a>
-      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">♟</span>Tenants &amp; visitors</a>
+      <a class="nav-item" href="#properties" data-view-link="properties"><span class="nav-icon">⌂</span>Property</a>
+      <a class="nav-item" href="#tenants" data-view-link="tenants"><span class="nav-icon">♟</span>Tenant</a>
       <a class="nav-item" href="#utilities" data-view-link="utilities"><span class="nav-icon">↯</span>Utilities</a>
       <a class="nav-item" href="#payments" data-view-link="payments"><span class="nav-icon">$</span>Payments</a>
       <a class="nav-item" href="#expenses" data-view-link="expenses"><span class="nav-icon">↗</span>Expenses</a>
       <a class="nav-item" href="#reports" data-view-link="reports"><span class="nav-icon">▤</span>Reports</a>
-      <a class="nav-item" href="#access" data-view-link="access"><span class="nav-icon">■</span>Users &amp; access</a>
+      <a class="nav-item" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">■</span>Users &amp; access</a>
     </nav>
   </aside>
 
@@ -61,16 +61,14 @@
       </div>
     </nav>
 
-    <div id="dashboard" class="hero-grid view active-view" data-view="dashboard">
+    <div id="dashboard" class="dashboard-bar view active-view" data-view="dashboard">
       <div>
-        <p class="eyebrow">Property Operations</p>
-        <h1>Client summary for Mani 6, Mani 7, and Mani 8.</h1>
-        <p class="hero-copy">Track every unit, tenant ID, contract date, stay duration, deposit status, contact detail, and monthly rental amount in one clean dashboard.</p>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Overview</h1>
       </div>
-      <div class="hero-card">
-        <p>Current month</p>
+      <div class="dashboard-month">
+        <span>Current month</span>
         <strong id="current-month-label">&mdash;</strong>
-        <span>Occupancy and payment status are calculated automatically.</span>
       </div>
     </div>
   </header>
@@ -99,16 +97,16 @@
       </article>
     </section>
 
-    <section id="access" class="panel view" data-view="access">
+    <section id="properties" class="panel view" data-view="properties">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">A. Property Tracker</p>
-          <h2>Property Profile</h2>
-          <p>Add each property/building first, then add apartments or units under that property.</p>
+          <p class="eyebrow">Property</p>
+          <h2>Active Properties</h2>
+          <p>Only the three active properties are shown here.</p>
         </div>
       </div>
 
-      <form id="property-form" class="form-grid property-form">
+      <form id="property-form" class="form-grid property-form" hidden>
         <label>
           Property name
           <input id="property-name" type="text" placeholder="e.g. Hasabi Building Block B" required>
@@ -125,10 +123,9 @@
           <thead>
             <tr>
               <th>Property</th>
-              <th>Location</th>
               <th>Total Units</th>
               <th>Occupied</th>
-              <th></th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="properties-table"></tbody>
@@ -194,12 +191,22 @@
     <section id="tenants" class="panel view" data-view="tenants">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">C. Tenants Tracker</p>
-          <h2>Tenant Profile</h2>
-          <p>Tenant ID, contacts, contract dates, deposit status, personal details, and assigned unit.</p>
+          <p class="eyebrow">Tenant</p>
+          <h2>Tenant List</h2>
+          <p>Click a tenant name to view the full details.</p>
         </div>
+        <button id="open-tenant-form" class="secondary-action" type="button">Add tenant</button>
       </div>
 
+      <div id="tenant-form-modal" class="form-modal" hidden aria-hidden="true">
+        <div class="form-modal-card" role="dialog" aria-modal="true" aria-labelledby="tenant-form-title">
+          <div class="modal-head">
+            <div>
+              <p class="eyebrow">Add Tenant</p>
+              <h2 id="tenant-form-title">Tenant Details</h2>
+            </div>
+            <button id="close-tenant-form" class="modal-close" type="button" aria-label="Close add tenant form">x</button>
+          </div>
       <form id="tenant-form" class="form-grid tenants-form">
         <label>
           Tenant ID
@@ -276,6 +283,8 @@
         </label>
         <button type="submit">Add tenant</button>
       </form>
+        </div>
+      </div>
 
       <div class="table-wrap">
         <table>
@@ -283,15 +292,9 @@
             <tr>
               <th>Tenant ID</th>
               <th>Name</th>
-              <th>Local Contact</th>
-              <th>Contract Sign Up</th>
-              <th>Move-in Start</th>
-              <th>Contract End</th>
               <th>Current Room</th>
               <th>Monthly Rent</th>
-              <th>Deposit</th>
               <th>Status</th>
-              <th></th>
             </tr>
           </thead>
           <tbody id="tenants-table"></tbody>
@@ -528,6 +531,19 @@
         <p>Check the address on Google Maps, then click use this location.</p>
         <button id="use-map-location" type="button">Use this location</button>
       </div>
+    </div>
+  </div>
+
+  <div id="tenant-details-modal" class="form-modal" hidden aria-hidden="true">
+    <div class="form-modal-card details-card" role="dialog" aria-modal="true" aria-labelledby="tenant-details-title">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Tenant Details</p>
+          <h2 id="tenant-details-title">Tenant Profile</h2>
+        </div>
+        <button id="close-tenant-details" class="modal-close" type="button" aria-label="Close tenant details">x</button>
+      </div>
+      <div id="tenant-details-body" class="details-grid"></div>
     </div>
   </div>
 
