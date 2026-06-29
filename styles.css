@@ -417,6 +417,20 @@ h2 {
   color: var(--danger);
 }
 
+.property-report-cards {
+  margin-bottom: 18px;
+}
+
+.report-section-block {
+  margin-top: 18px;
+}
+
+.report-section-block h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 18px;
+}
+
 .panel {
   display: flex;
   flex-direction: column;

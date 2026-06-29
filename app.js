@@ -324,6 +324,9 @@ const els = {
   reportDepositsReceived: document.getElementById("report-deposits-received"),
   reportDepositsReturned: document.getElementById("report-deposits-returned"),
   reportDepositsUsed: document.getElementById("report-deposits-used"),
+  propertyReportTitle: document.getElementById("property-report-title"),
+  propertyReportBody: document.getElementById("property-report-body"),
+  backPropertyReport: document.getElementById("back-property-report"),
   logsTable: document.getElementById("logs-table"),
   expensesTable: document.getElementById("expenses-table"),
   apartmentProperty: document.getElementById("apartment-property"),
@@ -423,6 +426,10 @@ function bindEvents() {
 
   els.backExpenseDetails.addEventListener("click", () => {
     hideExpenseDetails();
+  });
+
+  els.backPropertyReport.addEventListener("click", () => {
+    hidePropertyReport();
   });
 
   els.propertyForm.addEventListener("submit", (event) => {
@@ -635,6 +642,12 @@ function bindEvents() {
     const propertyDetailsTarget = event.target.closest("[data-property-details]");
     if (propertyDetailsTarget) {
       showPropertyDetails(propertyDetailsTarget.dataset.propertyDetails);
+      return;
+    }
+
+    const propertyReportTarget = event.target.closest("[data-property-report]");
+    if (propertyReportTarget) {
+      showPropertyReport(propertyReportTarget.dataset.propertyReport);
       return;
     }
 
@@ -860,6 +873,126 @@ function showExpenseDetails(expenseId) {
 function hideExpenseDetails() {
   setActiveView("expenses");
   els.expenseDetailsBody.innerHTML = "";
+}
+
+function showPropertyReport(propertyId) {
+  const property = getPropertyById(propertyId);
+  if (!property) return;
+
+  const month = els.targetMonth.value || getCurrentMonthValue();
+  const report = getProfitLossReport(month);
+  const row = report.propertyRows.find((item) => item.propertyId === propertyId);
+  const apartments = state.apartments
+    .filter((apartment) => apartment.propertyId === propertyId)
+    .sort((a, b) => a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }));
+  const apartmentIds = apartments.map((apartment) => apartment.id);
+  const logs = state.logs
+    .filter((log) => log.targetMonth === month && apartmentIds.includes(log.roomId))
+    .sort((a, b) => a.roomName.localeCompare(b.roomName, undefined, { numeric: true }));
+  const expenses = state.expenses
+    .filter((expense) => expense.date && expense.date.slice(0, 7) === month && apartmentIds.includes(expense.roomId))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const tenants = apartments
+    .map((apartment) => ({
+      apartment,
+      tenant: getTenantForRoom(apartment.id, month)
+    }))
+    .filter((item) => item.tenant);
+
+  els.propertyReportTitle.textContent = `${property.name} Report`;
+  els.propertyReportBody.innerHTML = `
+    <section class="report-cards property-report-cards" aria-label="Property report summary">
+      <article class="report-card"><span>Report month</span><strong>${escapeHtml(formatMonth(month))}</strong></article>
+      <article class="report-card"><span>Total units</span><strong>${row?.totalUnits ?? apartments.length}</strong></article>
+      <article class="report-card"><span>Occupied</span><strong>${row?.occupied ?? tenants.length}</strong></article>
+      <article class="report-card"><span>Expected rent</span><strong>${escapeHtml(formatMoney(row?.expectedRent || 0))}</strong></article>
+      <article class="report-card"><span>Collected rent</span><strong>${escapeHtml(formatMoney(row?.collectedRent || 0))}</strong></article>
+      <article class="report-card"><span>Outstanding</span><strong>${escapeHtml(formatMoney(row?.outstandingRent || 0))}</strong></article>
+      <article class="report-card"><span>Expenses</span><strong>${escapeHtml(formatMoney(row?.expenses || 0))}</strong></article>
+      <article class="report-card result-card"><span>Net profit / loss</span><strong class="${(row?.netProfit || 0) < 0 ? "loss" : ""}">${escapeHtml(formatMoney(row?.netProfit || 0))}</strong></article>
+    </section>
+
+    <div class="report-section-block">
+      <h3>Rent Collection</h3>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table property-report-table">
+          <thead>
+            <tr><th>Room</th><th>Tenant</th><th>Rent Due</th><th>Amount Paid</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${logs.length ? logs.map((log) => {
+              const status = getPaymentStatus(log.rentDue, log.amountPaid);
+              return `
+                <tr>
+                  <td>${escapeHtml(log.roomName)}</td>
+                  <td>${escapeHtml(log.renterName || "Vacant")}</td>
+                  <td>${escapeHtml(formatMoney(log.rentDue))}</td>
+                  <td>${escapeHtml(formatMoney(log.amountPaid))}</td>
+                  <td><span class="badge ${status.toLowerCase()}">${escapeHtml(status)}</span></td>
+                </tr>
+              `;
+            }).join("") : `<tr><td colspan="5" class="empty-state">No rent collection rows for this property yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section-block">
+      <h3>Expenses</h3>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table property-report-table">
+          <thead>
+            <tr><th>Date</th><th>Apartment</th><th>Expense</th><th>Amount</th></tr>
+          </thead>
+          <tbody>
+            ${expenses.length ? expenses.map((expense) => {
+              const apartment = state.apartments.find((item) => item.id === expense.roomId);
+              return `
+                <tr>
+                  <td>${escapeHtml(formatDate(expense.date))}</td>
+                  <td>${escapeHtml(apartment?.unitNumber || "Deleted")}</td>
+                  <td>${escapeHtml(expense.name)}</td>
+                  <td>${escapeHtml(formatMoney(expense.amount))}</td>
+                </tr>
+              `;
+            }).join("") : `<tr><td colspan="4" class="empty-state">No expenses for this property in this month.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section-block">
+      <h3>Current Tenants</h3>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table property-report-table">
+          <thead>
+            <tr><th>Tenant ID</th><th>Name</th><th>Room</th><th>Monthly Rent</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${tenants.length ? tenants.map(({ apartment, tenant }) => {
+              const status = getContractStatus(tenant);
+              return `
+                <tr>
+                  <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
+                  <td><button class="link-button tenant-name-button" type="button" data-tenant-details="${tenant.id}">${escapeHtml(tenant.name)}</button></td>
+                  <td>${escapeHtml(apartment.unitNumber)}</td>
+                  <td>${escapeHtml(formatMoney(getTenantMonthlyRent(tenant, apartment)))}</td>
+                  <td><span class="badge ${status === "Checked in" ? "yes" : "no"}">${escapeHtml(status)}</span></td>
+                </tr>
+              `;
+            }).join("") : `<tr><td colspan="5" class="empty-state">No current tenants for this property.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  setActiveView("property-report");
+}
+
+function hidePropertyReport() {
+  setActiveView("reports");
+  els.propertyReportBody.innerHTML = "";
 }
 
 function renderPropertySelect() {
@@ -1107,7 +1240,11 @@ function renderReports() {
   els.profitLossTable.innerHTML = report.propertyRows
     .map((row) => `
       <tr>
-        <td><strong>${escapeHtml(row.property)}</strong></td>
+        <td>
+          <button class="link-button property-name-button" type="button" data-property-report="${row.propertyId}">
+            ${escapeHtml(row.property)}
+          </button>
+        </td>
         <td>${row.totalUnits}</td>
         <td>${row.occupied}</td>
         <td>${formatMoney(row.expectedRent)}</td>
@@ -1570,6 +1707,7 @@ function getProfitLossReport(month) {
     const expenseTotal = propertyExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
     return {
+      propertyId: property.id,
       property: property.name,
       totalUnits: apartments.length,
       occupied: apartments.filter((apartment) => getTenantForRoom(apartment.id, month)).length,
