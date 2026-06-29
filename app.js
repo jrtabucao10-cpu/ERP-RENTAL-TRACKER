@@ -305,6 +305,12 @@ const els = {
   propertyDetailsTitle: document.getElementById("property-details-title"),
   propertyDetailsBody: document.getElementById("property-details-body"),
   closePropertyDetails: document.getElementById("close-property-details"),
+  expenseDetailsModal: document.getElementById("expense-details-modal"),
+  expenseDetailsBody: document.getElementById("expense-details-body"),
+  closeExpenseDetails: document.getElementById("close-expense-details"),
+  openExpenseForm: document.getElementById("open-expense-form"),
+  expenseFormModal: document.getElementById("expense-form-modal"),
+  closeExpenseForm: document.getElementById("close-expense-form"),
   expenseForm: document.getElementById("expense-form"),
   propertiesTable: document.getElementById("properties-table"),
   apartmentsTable: document.getElementById("apartments-table"),
@@ -398,8 +404,16 @@ function bindEvents() {
     showTenantForm();
   });
 
+  els.openExpenseForm.addEventListener("click", () => {
+    showExpenseForm();
+  });
+
   els.closeTenantForm.addEventListener("click", () => {
     hideTenantForm();
+  });
+
+  els.closeExpenseForm.addEventListener("click", () => {
+    hideExpenseForm();
   });
 
   els.closeTenantDetails.addEventListener("click", () => {
@@ -410,8 +424,16 @@ function bindEvents() {
     hidePropertyDetails();
   });
 
+  els.closeExpenseDetails.addEventListener("click", () => {
+    hideExpenseDetails();
+  });
+
   els.tenantFormModal.addEventListener("click", (event) => {
     if (event.target === els.tenantFormModal) hideTenantForm();
+  });
+
+  els.expenseFormModal.addEventListener("click", (event) => {
+    if (event.target === els.expenseFormModal) hideExpenseForm();
   });
 
   els.tenantDetailsModal.addEventListener("click", (event) => {
@@ -420,6 +442,10 @@ function bindEvents() {
 
   els.propertyDetailsModal.addEventListener("click", (event) => {
     if (event.target === els.propertyDetailsModal) hidePropertyDetails();
+  });
+
+  els.expenseDetailsModal.addEventListener("click", (event) => {
+    if (event.target === els.expenseDetailsModal) hideExpenseDetails();
   });
 
   els.propertyForm.addEventListener("submit", (event) => {
@@ -541,6 +567,7 @@ function bindEvents() {
 
     els.expenseForm.reset();
     document.getElementById("expense-date").value = getTodayValue();
+    hideExpenseForm();
     persistAndRender();
   });
 
@@ -636,7 +663,14 @@ function bindEvents() {
 
     const tenantDetailsButton = event.target.closest("[data-tenant-details]");
     if (tenantDetailsButton) {
+      if (!els.propertyDetailsModal.hidden) hidePropertyDetails();
       showTenantDetails(tenantDetailsButton.dataset.tenantDetails);
+      return;
+    }
+
+    const expenseDetailsButton = event.target.closest("[data-expense-details]");
+    if (expenseDetailsButton) {
+      showExpenseDetails(expenseDetailsButton.dataset.expenseDetails);
       return;
     }
 
@@ -695,6 +729,17 @@ function showTenantForm() {
 function hideTenantForm() {
   els.tenantFormModal.hidden = true;
   els.tenantFormModal.setAttribute("aria-hidden", "true");
+}
+
+function showExpenseForm() {
+  els.expenseFormModal.hidden = false;
+  els.expenseFormModal.setAttribute("aria-hidden", "false");
+  setTimeout(() => els.expenseRoom.focus(), 50);
+}
+
+function hideExpenseForm() {
+  els.expenseFormModal.hidden = true;
+  els.expenseFormModal.setAttribute("aria-hidden", "true");
 }
 
 function showTenantDetails(tenantId) {
@@ -771,43 +816,28 @@ function showPropertyDetails(propertyId) {
         <table class="property-details-table">
           <thead>
             <tr>
-              <th>Unit</th>
               <th>Tenant ID</th>
               <th>Name</th>
-              <th>Local Contact</th>
-              <th>International Contact</th>
+              <th>Current Room</th>
               <th>Monthly Rent</th>
-              <th>Contract End</th>
-              <th>Remaining Days</th>
               <th>Status</th>
-              <th>Occupancy</th>
-              <th>Nationality</th>
-              <th>Email</th>
             </tr>
           </thead>
           <tbody>
             ${occupiedUnits
               .map(({ apartment, tenant }) => {
-                const metrics = getContractMetrics(tenant);
                 const status = getContractStatus(tenant);
                 return `
                   <tr>
-                    <td><strong>${escapeHtml(apartment.unitNumber)}</strong></td>
                     <td>${escapeHtml(tenant.tenantIdNumber || "-")}</td>
                     <td>
                       <button class="link-button tenant-name-button" type="button" data-tenant-details="${tenant.id}">
                         ${escapeHtml(tenant.name)}
                       </button>
                     </td>
-                    <td>${escapeHtml(tenant.localPhone || tenant.phone || "-")}</td>
-                    <td>${escapeHtml(tenant.internationalPhone || "-")}</td>
+                    <td>${escapeHtml(apartment.unitNumber)}</td>
                     <td>${escapeHtml(formatMoney(getTenantMonthlyRent(tenant, apartment)))}</td>
-                    <td>${escapeHtml(formatDate(getTenantEndDate(tenant)))}</td>
-                    <td>${escapeHtml(metrics.remainingDays)}</td>
                     <td><span class="badge ${status === "Checked in" ? "yes" : "danger"}">${escapeHtml(status)}</span></td>
-                    <td>${escapeHtml(tenant.occupancy || "-")}</td>
-                    <td>${escapeHtml(tenant.nationality || "-")}</td>
-                    <td>${escapeHtml(tenant.email || "-")}</td>
                   </tr>
                 `;
               })
@@ -826,6 +856,38 @@ function hidePropertyDetails() {
   els.propertyDetailsModal.hidden = true;
   els.propertyDetailsModal.setAttribute("aria-hidden", "true");
   els.propertyDetailsBody.innerHTML = "";
+}
+
+function showExpenseDetails(expenseId) {
+  const expense = state.expenses.find((item) => item.id === expenseId);
+  if (!expense) return;
+
+  const apartment = state.apartments.find((item) => item.id === expense.roomId);
+  const property = apartment ? getPropertyById(apartment.propertyId) : null;
+  const details = [
+    ["Date", formatDate(expense.date)],
+    ["Property", property?.name || "-"],
+    ["Apartment", apartment ? getApartmentLabel(apartment) : "Apartment deleted"],
+    ["Expense", expense.name || "-"],
+    ["Amount", formatMoney(expense.amount)]
+  ];
+
+  els.expenseDetailsBody.innerHTML = details
+    .map(([label, value]) => `
+      <div class="detail-item">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `)
+    .join("");
+  els.expenseDetailsModal.hidden = false;
+  els.expenseDetailsModal.setAttribute("aria-hidden", "false");
+}
+
+function hideExpenseDetails() {
+  els.expenseDetailsModal.hidden = true;
+  els.expenseDetailsModal.setAttribute("aria-hidden", "true");
+  els.expenseDetailsBody.innerHTML = "";
 }
 
 function renderPropertySelect() {
@@ -1029,39 +1091,27 @@ function renderTenants() {
 function renderClientSummary() {
   const rows = getClientSummaryRows();
   if (!rows.length) {
-    renderEmpty(els.clientSummaryTable, 21, "No client summary yet. Add a tenant above to start.");
+    renderEmpty(els.clientSummaryTable, 6, "No client summary yet. Add a tenant above to start.");
     return;
   }
 
   els.clientSummaryTable.innerHTML = rows
     .map((row) => `
       <tr>
-        <td>${escapeHtml(row.property)}</td>
         <td><strong>${escapeHtml(row.tenantId)}</strong></td>
+        <td>
+          <button class="link-button tenant-name-button" type="button" data-tenant-details="${row.tenantRecordId}">
+            ${escapeHtml(row.tenantName)}
+          </button>
+        </td>
+        <td>${escapeHtml(row.property)}</td>
         <td>${escapeHtml(row.unitNumber)}</td>
-        <td>${escapeHtml(row.contractSignUp)}</td>
-        <td>${escapeHtml(row.moveInStart)}</td>
-        <td>${escapeHtml(row.end)}</td>
-        <td>${escapeHtml(row.remainingDays)}</td>
-        <td>${escapeHtml(row.totalStay)}</td>
-        <td>${escapeHtml(row.totalMonths)}</td>
-        <td>${escapeHtml(row.totalYears)}</td>
-        <td><span class="badge ${row.status === "Checked in" ? "yes" : "no"}">${escapeHtml(row.status)}</span></td>
         <td>${escapeHtml(row.monthlyRent)}</td>
-        <td>${escapeHtml(row.depositAmount)}</td>
-        <td><span class="badge deposit">${escapeHtml(row.depositStatus)}</span></td>
-        <td>${escapeHtml(row.tenantName)}</td>
-        <td>${escapeHtml(row.localContact)}</td>
-        <td>${escapeHtml(row.internationalContact)}</td>
-        <td>${escapeHtml(row.nationality)}</td>
-        <td>${escapeHtml(row.gender)}</td>
-        <td>${escapeHtml(row.occupancy)}</td>
-        <td>${escapeHtml(row.email)}</td>
+        <td><span class="badge ${row.status === "Checked in" ? "yes" : "no"}">${escapeHtml(row.status)}</span></td>
       </tr>
     `)
     .join("");
 }
-
 function renderReports() {
   const month = els.targetMonth.value || getCurrentMonthValue();
   const report = getProfitLossReport(month);
@@ -1097,7 +1147,7 @@ function renderReports() {
     `)
     .join("") + `
       <tr class="total-row">
-        <td>Total</td>
+        <td>All Properties Total</td>
         <td>${report.totals.totalUnits}</td>
         <td>${report.totals.occupied}</td>
         <td>${formatMoney(report.totals.expectedRent)}</td>
@@ -1157,7 +1207,7 @@ function renderLogs() {
 function renderExpenses() {
   ensureStateShape();
   if (!state.expenses.length) {
-    renderEmpty(els.expensesTable, 5, "No expenses yet. Add an apartment expense above.");
+    renderEmpty(els.expensesTable, 4, "No expenses yet. Add an apartment expense above.");
     return;
   }
 
@@ -1171,8 +1221,11 @@ function renderExpenses() {
       return `
         <tr>
           <td>${formatDate(expense.date)}</td>
-          <td><strong>${apartment ? escapeHtml(getApartmentLabel(apartment)) : "Apartment deleted"}</strong></td>
-          <td>${escapeHtml(expense.name)}</td>
+          <td>
+            <button class="link-button expense-name-button" type="button" data-expense-details="${expense.id}">
+              ${escapeHtml(expense.name)}
+            </button>
+          </td>
           <td>${formatMoney(expense.amount)}</td>
           <td>
             <div class="row-actions">
@@ -1186,7 +1239,7 @@ function renderExpenses() {
 
   els.expensesTable.innerHTML = rows + `
     <tr class="total-row">
-      <td colspan="3">Total Expenses</td>
+      <td colspan="2">Total Expenses</td>
       <td>${formatMoney(totalExpenses)}</td>
       <td></td>
     </tr>
@@ -1263,6 +1316,7 @@ function getClientSummaryRows() {
       const metrics = getContractMetrics(tenant);
 
       return {
+        tenantRecordId: tenant.id,
         property: property?.name || "Property deleted",
         tenantId: tenant.tenantIdNumber || "—",
         unitNumber: apartment?.unitNumber || "Unit deleted",

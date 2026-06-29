@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mani Property Rental ERP</title>
-  <link rel="stylesheet" href="styles.css?v=property-details-row">
+  <link rel="stylesheet" href="styles.css?v=expense-form-popup">
 </head>
 <body class="is-locked">
   <section id="login-screen" class="login-screen">
@@ -308,35 +308,20 @@
         <div>
           <p class="eyebrow">Client Data Summary</p>
           <h2>Full Client Summary</h2>
-          <p>Complete tenant view with contract duration, remaining days, stay totals, rent, deposit, contacts, and occupancy details.</p>
+          <p>Click a tenant name to view the full client details.</p>
         </div>
       </div>
 
-      <div class="table-wrap summary-wrap">
-        <table class="summary-table">
+      <div class="table-wrap summary-wrap fit-table-wrap">
+        <table class="summary-table fit-table">
           <thead>
             <tr>
-              <th>Property</th>
               <th>Tenant ID</th>
-              <th>Unit Number</th>
-              <th>Contract Sign Up</th>
-              <th>Start of Moving In</th>
-              <th>End</th>
-              <th>Remaining Days</th>
-              <th>Total Stay</th>
-              <th>Total Month</th>
-              <th>Total Years</th>
-              <th>Status</th>
-              <th>Monthly Rental Amount</th>
-              <th>Deposit Amount</th>
-              <th>Deposit Status</th>
               <th>Tenant Name</th>
-              <th>Local Contact</th>
-              <th>International Contact</th>
-              <th>Nationality</th>
-              <th>Gender</th>
-              <th>Occupancy</th>
-              <th>Email</th>
+              <th>Property</th>
+              <th>Current Room</th>
+              <th>Monthly Rent</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="client-summary-table"></tbody>
@@ -349,7 +334,7 @@
         <div>
           <p class="eyebrow">Reports</p>
           <h2>Client Data, Profit and Loss</h2>
-          <p>Monthly report using rent collection, outstanding balance, expenses, deposits, and property-level profit or loss.</p>
+          <p>Profit and loss by each property, with an overall summary of all properties.</p>
         </div>
       </div>
 
@@ -392,8 +377,8 @@
         </article>
       </section>
 
-      <div class="table-wrap">
-        <table>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table profit-loss-fit-table">
           <thead>
             <tr>
               <th>Property</th>
@@ -478,34 +463,45 @@
           <h2>Apartment Expenses</h2>
           <p>Record maintenance, repair, cleaning, or other costs and assign each expense to an apartment.</p>
         </div>
+        <button id="open-expense-form" class="secondary-action" type="button">Add expense</button>
       </div>
 
-      <form id="expense-form" class="form-grid expense-form">
-        <label>
-          Apartment
-          <select id="expense-room" required></select>
-        </label>
-        <label>
-          Expense name
-          <input id="expense-name" type="text" placeholder="e.g. AC repair" required>
-        </label>
-        <label>
-          Amount
-          <input id="expense-amount" type="number" min="0" step="1" placeholder="250" required>
-        </label>
-        <label>
-          Date
-          <input id="expense-date" type="date" required>
-        </label>
-        <button type="submit">Add expense</button>
-      </form>
+      <div id="expense-form-modal" class="form-modal" hidden aria-hidden="true">
+        <div class="form-modal-card" role="dialog" aria-modal="true" aria-labelledby="expense-form-title">
+          <div class="modal-head">
+            <div>
+              <p class="eyebrow">Add Expense</p>
+              <h2 id="expense-form-title">Expense Details</h2>
+            </div>
+            <button id="close-expense-form" class="modal-close" type="button" aria-label="Close add expense form">x</button>
+          </div>
+          <form id="expense-form" class="form-grid expense-form">
+            <label>
+              Apartment
+              <select id="expense-room" required></select>
+            </label>
+            <label>
+              Expense name
+              <input id="expense-name" type="text" placeholder="e.g. AC repair" required>
+            </label>
+            <label>
+              Amount
+              <input id="expense-amount" type="number" min="0" step="1" placeholder="250" required>
+            </label>
+            <label>
+              Date
+              <input id="expense-date" type="date" required>
+            </label>
+            <button type="submit">Add expense</button>
+          </form>
+        </div>
+      </div>
 
-      <div class="table-wrap">
-        <table>
+      <div class="table-wrap fit-table-wrap">
+        <table class="fit-table expenses-fit-table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Apartment</th>
               <th>Expense</th>
               <th>Amount</th>
               <th></th>
@@ -561,12 +557,25 @@
     </div>
   </div>
 
+  <div id="expense-details-modal" class="form-modal" hidden aria-hidden="true">
+    <div class="form-modal-card details-card" role="dialog" aria-modal="true" aria-labelledby="expense-details-title">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Expense Details</p>
+          <h2 id="expense-details-title">Expense Record</h2>
+        </div>
+        <button id="close-expense-details" class="modal-close" type="button" aria-label="Close expense details">x</button>
+      </div>
+      <div id="expense-details-body" class="details-grid"></div>
+    </div>
+  </div>
+
   <template id="empty-row-template">
     <tr>
       <td colspan="7" class="empty-state">No records yet. Add data above to start.</td>
     </tr>
   </template>
-  <script src="app.js?v=property-details-row"></script>
+  <script src="app.js?v=expense-form-popup"></script>
 </body>
 </html>
 
